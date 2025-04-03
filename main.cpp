@@ -1,20 +1,21 @@
 #include <iostream>
 #include <iomanip>
+#include <string>
 #include <cstdlib>
 #include <ctime>
-#include <string>
 #include <cctype>
 #include <fstream>
+#include <limits>
 #include <map>
 #include "cube.h"
 using namespace std;
 
-char getCharacterInput(string);
+char getCharacterInput();
 string getStringInput(string);
 bool checkFileValid();
 
 void handleNewCube(Cube&, bool);
-void handleLoadCube(Cube&);
+void handleLoadCube(Cube&, bool&);
 void useCube(Cube&);
 
 void switchMenu(bool&, bool&);
@@ -50,13 +51,10 @@ int main() {
             userInput = getCharacterInput();
 
             if (userInput == NEW_CUBE_CHAR) {
-                displayNewCube();
                 switchMenu(isTitle, isNewCube);
             } else if (userInput == LOAD_CUBE_CHAR) {
-                displayLoadCube();
                 switchMenu(isTitle, isLoadCube);
             } else if (userInput == GUIDE_CHAR) {
-                displayGuide();
                 switchMenu(isTitle, isGuide);
             } else if (userInput == QUIT_CHAR) {
                 break;
@@ -64,40 +62,46 @@ int main() {
                 cout << "Invalid input.\n";
             }
         } else if (isNewCube) {  // Display new cube menu, providing user with options
+            displayNewCube();
             userInput = getCharacterInput();
 
             if (userInput == NEW_CUBE_RANDOM_CHAR) {
                 handleNewCube(currentCube, true);
+                usingCube = true;
             } else if (userInput == NEW_CUBE_MANUAL_CHAR) {
                 handleNewCube(currentCube, false);
+                usingCube = true;
             } else {
                 switchMenu(isNewCube, isTitle);
             }
         } else if (isLoadCube) { // Display load cube menu, providing user with options
-            handleLoadCube(currentCube);
-            switchMenu(isLoadCube);
+            displayLoadCube();
+            handleLoadCube(currentCube, usingCube);
+            
+            if (!usingCube) {
+                switchMenu(isLoadCube, isTitle);
+            }
         } else if (isGuide) { // Display guide and allow user to go back
+            displayGuide();
             userInput = getCharacterInput();
+            
+            switchMenu(isGuide, isTitle);
         } else { // The user is using the Rubik's cube
             useCube(currentCube);
+            usingCube = false;
         }
-        
-        cout << endl;
     }
-    
 
-    cout << "Thank you for using the Rubik's Cube Assistant program.\n";
+    cout << "\nThank you for using the Rubik's Cube Assistant program.\n";
 }
 
-/** Displays message to user for character input and returns its uppercase version.
- * @param message Message to print.
+/** Accepts character input from user and returns its uppercase version.
  * @return Uppercase character from the user.
  */
-char getCharacterInput(string message) {
-    cout << message;
+char getCharacterInput() {
     char ch;
     cin >> ch;
-    cin.ignore();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
     return toupper(ch);
 }
 
@@ -110,8 +114,12 @@ void handleNewCube(Cube& cube, bool randomized) {
     
 }
 
-
-void handleLoadCube(Cube&) {
+/**
+ * Sets the current cube to a pre-existing one, if it exists in a given file.
+ * @param cube The cube in use that will be updated.
+ * @param usingCube Whether or not the cube is in use. Set to true if load was successful.
+ */
+void handleLoadCube(Cube& cube, bool& usingCube) {
 
 }
 
@@ -133,7 +141,7 @@ void switchMenu(bool& original, bool& updated) {
  * Displays title menu and provides valid options.
  */
 void displayTitle() {
-    cout << "Welcome to the Rubik's Cube Assistant!";
+    cout << "\nWelcome to the Rubik's Cube Assistant!\n";
     cout << "\t(N) NEW CUBE\n";
     cout << "\t(L) LOAD CUBE\n";
     cout << "\t(G) GUIDE\n";
@@ -145,24 +153,26 @@ void displayTitle() {
  * Prints new cube menu and provides valid options.
  */
 void displayNewCube() {
-    cout << "What would you like to do?\n"
+    cout << "\nNEW CUBE\n"
          << "\t(N) Randomly generate a new Rubik's cube\n"
          << "\t(M) Manually scramble your Rubik's cube\n"
-         << "Please enter an option, or anything else to go back: ";
+         << "What would you like to do? ";
 }
 
 /**
  * Prints load cube menu and provides valid options.
  */
 void displayLoadCube() {
-    cout << "Please enter the name of a valid file: ";
+    cout << "\nLOAD CUBE\n"
+         << "Please enter the name of a valid file: ";
 }
 
 /**
  * Prints guide and provides valid options.
  */
 void displayGuide() {
-    cout << "The Rubik's Cube Assistant program allows you to interact with a Rubik's cube with guidance of\n"
+    cout << "\nGUIDE\n"
+         << "The Rubik's Cube Assistant program allows you to interact with a Rubik's cube with guidance of\n"
          << "a computer using the beginner's method.\n\n";
 
     cout << "To start interacting with your Rubik's cube, either create a new cube or load in a pre-existing one.\n"
@@ -177,5 +187,5 @@ void displayGuide() {
     cout << "Once you have started interacting with your Rubik's cube, you will be presented with a set of valid\n"
          << "commands. You will also have a flattened display of the cube. Additionally, the original scramble,\n"
          << "total moves, and current moves will be displayed.\n"
-         << "Enter any character to go back: ";
+         << "\nEnter anything to go back: ";
 }

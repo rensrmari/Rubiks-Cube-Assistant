@@ -95,7 +95,6 @@ int main() {
         }
     }
     
-    currentCube.displayCube();
     cout << "\nThank you for using the Rubik's Cube Assistant program.\n";
 }
 

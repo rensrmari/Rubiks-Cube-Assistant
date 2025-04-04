@@ -2,6 +2,12 @@
     "files.associations": {
         "iomanip": "cpp",
         "iostream": "cpp",
-        "cctype": "cpp"
-    }
+        "cctype": "cpp",
+        "xstring": "cpp",
+        "string": "cpp",
+        "map": "cpp",
+        "ostream": "cpp",
+        "ios": "cpp"
+    },
+    "editor.fontWeight": "bold"
 }

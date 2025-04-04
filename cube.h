@@ -4,15 +4,16 @@
 #define WHITE_BG "\033[107m"
 #define RED_BG "\033[101m"
 #define GREEN_BG "\033[102m"
-#define BLUE_BG "\033[94m"
+#define BLUE_BG "\033[104m"
 #define ORANGE_BG "\033[105m"
 #define YELLOW_BG "\033[103m"
 #define WHITE_FG "\033[97m"
 #define RED_FG "\033[91m"
 #define GREEN_FG "\033[92m"
 #define BLUE_FG "\033[94m"
-#define ORANGE_FG "\033[96m"
+#define ORANGE_FG "\033[95m"
 #define YELLOW_FG "\033[93m"
+#define BLACK_FG "\033[30m"
 #define RESET "\033[0m"
 
 #include <string>
@@ -64,10 +65,11 @@ private:
     /**
      * Returns a colored representation of a face's segment.
      * @param side The face's side.
+     * @param width The width of the individual segments.
      * @param row The row of the segment to print.
      * @return A string representing a segment of a face.
      */
-    string printFaceSegment(const int side, const int row) const;
+    string printFaceSegment(const int side, const int width, const int row) const;
 
     /**
      * Prints a specified number of spaces.

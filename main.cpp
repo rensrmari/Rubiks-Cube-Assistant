@@ -1,3 +1,6 @@
+#include "assistant.h"
+#include "cube.h"
+#include "file_handler.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -7,22 +10,22 @@
 #include <fstream>
 #include <limits>
 #include <map>
-#include "cube.h"
 using namespace std;
 
-char getCharacterInput();
-string getStringInput(string);
-bool checkFileValid();
-
-void handleNewCube(Cube&, bool);
-void handleLoadCube(Cube&, bool&);
-void useCube(Cube&);
-
-void switchMenu(bool&, bool&);
+void switchMenu(bool& original, bool& updated);
 void displayTitle();
 void displayNewCube();
 void displayLoadCube();
 void displayGuide();
+
+char getCharacterInput();
+string getStringInput(string str);
+bool checkFileValid();
+void saveCube(const Cube& cube);
+
+void handleNewCube(Cube& cube, bool randomized);
+void handleLoadCube(Cube& cube, bool& usingCube);
+void useCube(Cube& cube);
 
 int main() {
     srand(time(0));
@@ -91,7 +94,8 @@ int main() {
             usingCube = false;
         }
     }
-
+    
+    currentCube.displayCube();
     cout << "\nThank you for using the Rubik's Cube Assistant program.\n";
 }
 
@@ -185,7 +189,9 @@ void displayGuide() {
          << "\tlike to load.\n\n";
 
     cout << "Once you have started interacting with your Rubik's cube, you will be presented with a set of valid\n"
-         << "commands. You will also have a flattened display of the cube. Additionally, the original scramble,\n"
-         << "total moves, and current moves will be displayed.\n"
-         << "\nEnter anything to go back: ";
+         << "commands. You will also have a flattened display of the cube. Additionally, your name, the original\n"
+         << "scramble, total moves, and current moves will be displayed.\n\n";
+    
+    cout << "Note: The color orange (O) has been replaced with magenta.\n\n"
+         << "Enter anything to go back: ";
 }

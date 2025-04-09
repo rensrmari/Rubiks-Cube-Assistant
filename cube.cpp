@@ -5,6 +5,7 @@
 #include <string>
 #include <set>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 
 const set<char> Cube::VALID_MOVES = { 'U', 'L', 'F', 'R', 'B', 'D', 'x', 'y' };
@@ -72,7 +73,7 @@ int Cube::countMoves(const string& moves) {
 	char ch;
 
 	while (iss >> ch) {
-		if (ch != '\'' || ch != '2') { // Counting letters
+		if (ch != '\'' && ch != '2') { // Counting letters
 			numMoves++;
 		}
 
@@ -291,28 +292,170 @@ void Cube::processMove(char letter) {
 	}
 }
 
+void Cube::placeRow(int face, vector<char> colors, int row) {
+	for (int i = 0; i < SIZE; i++) {
+		stickers[face][row][i] = colors[i];
+	}
+}
+
+void Cube::placeCol(int face, vector<char> colors, int col) {
+	for (int i = 0; i < SIZE; i++) {
+		stickers[face][i][col] = colors[i];
+	}
+}
+
+vector<char> Cube::getRow(int face, int row) const {
+	vector<char> res;
+
+	for (int i = 0; i < SIZE; i++) {
+		res.push_back(stickers[face][row][i]);
+	}
+	
+	return res;
+}
+
+vector<char> Cube::getCol(int face, int col) const {
+	vector<char> res;
+
+	for (int i = 0; i < SIZE; i++) {
+		res.push_back(stickers[face][i][col]);
+	}
+	
+	return res;
+}
+
+void Cube::rotateFace(int face) {
+	// Get original color values.
+	vector<char> topRow = getRow(face, 0);
+	vector<char> rightCol = getCol(face, 2);
+	vector<char> bottomRow = getRow(face, 2);
+	vector<char> leftCol = getCol(face, 0);
+
+	// Reverse the order of the right and left segments to properly translate them to bottom and top respectively.
+	reverse(rightCol.begin(), rightCol.end());
+	reverse(leftCol.begin(), leftCol.end());
+
+	// Replace each segment of the face.
+	placeCol(face, topRow, 2);    // Top to right
+	placeRow(face, rightCol, 2);  // Right to bottom
+	placeCol(face, bottomRow, 0); // Bottom to left
+	placeRow(face, leftCol, 0);   // Left to top
+}
+
 void Cube::turnU() {
-	cout << "U ";
+	// Rotate the top face.
+	rotateFace(Faces::TOP);
+
+	// Switch sides of the top face.
+	vector<char> frontSide = getRow(Faces::FRONT, 0);
+	vector<char> rightSide = getRow(Faces::RIGHT, 0);
+	vector<char> backSide = getRow(Faces::BACK, 0);
+	vector<char> leftSide = getRow(Faces::LEFT, 0);
+
+	placeRow(Faces::FRONT, rightSide, 0);
+	placeRow(Faces::RIGHT, backSide, 0);
+	placeRow(Faces::BACK, leftSide, 0);
+	placeRow(Faces::LEFT, frontSide, 0);
 }
 
 void Cube::turnL() {
-	cout << "L ";
+	// Rotate the left face.
+	rotateFace(Faces::LEFT);
+
+	// Switch sides of the left face.
+	vector<char> topSide = getCol(Faces::TOP, 0);
+	vector<char> frontSide = getCol(Faces::FRONT, 0);
+	vector<char> bottomSide = getCol(Faces::BOTTOM, 0);
+	vector<char> backSide = getCol(Faces::BACK, 2);
+
+	// Reverse back segment so it can be properly translated to the top.
+	// Reverse bottom segment so it can be properly translated to the back.
+	reverse(backSide.begin(), backSide.end());
+	reverse(bottomSide.begin(), bottomSide.end());
+
+	placeCol(Faces::TOP, backSide, 0);
+	placeCol(Faces::FRONT, topSide, 0);
+	placeCol(Faces::BOTTOM, frontSide, 0);
+	placeCol(Faces::BACK, bottomSide, 2);
 }
 
 void Cube::turnF() {
-	cout << "F ";
+	// Rotate the front face.
+	rotateFace(Faces::FRONT);
+
+	// Switch sides of the front face.
+	vector<char> topSide = getRow(Faces::TOP, 2);
+	vector<char> rightSide = getCol(Faces::RIGHT, 0);
+	vector<char> bottomSide = getRow(Faces::BOTTOM, 0);
+	vector<char> leftSide = getCol(Faces::LEFT, 2);
+
+	// Reverse left segment so it can be properly translated to the top.
+	// Reverse right segment so it can be properly translated to the bottom.
+	reverse(leftSide.begin(), leftSide.end());
+	reverse(rightSide.begin(), rightSide.end());
+
+	placeRow(Faces::TOP, leftSide, 2);
+	placeCol(Faces::RIGHT, topSide, 0);
+	placeRow(Faces::BOTTOM, rightSide, 0);
+	placeCol(Faces::LEFT, bottomSide, 2);
 }
 
 void Cube::turnR() {
-	cout << "R ";
+	// Rotate the right face.
+	rotateFace(Faces::RIGHT);
+
+	// Switch sides of the right face.
+	vector<char> topSide = getCol(Faces::TOP, 2);
+	vector<char> frontSide = getCol(Faces::FRONT, 2);
+	vector<char> bottomSide = getCol(Faces::BOTTOM, 2);
+	vector<char> backSide = getCol(Faces::BACK, 0);
+
+	// Reverse top segment so it can be properly translated to the back.
+	// Reverse back segment so it can be properly translated to the bottom.
+	reverse(topSide.begin(), topSide.end());
+	reverse(backSide.begin(), backSide.end());
+
+	placeCol(Faces::TOP, frontSide, 2);
+	placeCol(Faces::FRONT, bottomSide, 2);
+	placeCol(Faces::BOTTOM, backSide, 2);
+	placeCol(Faces::BACK, topSide, 0);
 }
 
 void Cube::turnB() {
-	cout << "B ";
+	// Rotate the back face.
+	rotateFace(Faces::BACK);
+
+	// Switch sides of the back face.
+	vector<char> topSide = getRow(Faces::TOP, 0);
+	vector<char> rightSide = getCol(Faces::RIGHT, 2);
+	vector<char> bottomSide = getRow(Faces::BOTTOM, 2);
+	vector<char> leftSide = getCol(Faces::LEFT, 0);
+
+	// Reverse top segment so it can be properly translated to the left.
+	// Reverse bottom segment so it can be properly translated to the right.
+	reverse(topSide.begin(), topSide.end());
+	reverse(bottomSide.begin(), bottomSide.end());
+
+	placeRow(Faces::TOP, rightSide, 0);
+	placeCol(Faces::RIGHT, bottomSide, 2);
+	placeRow(Faces::BOTTOM, leftSide, 2);
+	placeCol(Faces::LEFT, topSide, 0);
 }
 
 void Cube::turnD() {
-	cout << "D ";
+	// Rotate the bottom face.
+	rotateFace(Faces::BOTTOM);
+
+	// Switch sides of the bottom face.
+	vector<char> frontSide = getRow(Faces::FRONT, 2);
+	vector<char> rightSide = getRow(Faces::RIGHT, 2);
+	vector<char> backSide = getRow(Faces::BACK, 2);
+	vector<char> leftSide = getRow(Faces::LEFT, 2);
+
+	placeRow(Faces::FRONT, leftSide, 2);
+	placeRow(Faces::RIGHT, frontSide, 2);
+	placeRow(Faces::BACK, rightSide, 2);
+	placeRow(Faces::LEFT, backSide, 2);
 }
 
 void Cube::reset() {

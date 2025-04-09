@@ -286,7 +286,7 @@ void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube
             }
         } while (!validName);
 
-        // Begin using the cube.
+        // Update cube information and begin using the cube.
         switchMenu(original, usingCube);
     } else {
         fh.displayError(fileStatus);
@@ -295,7 +295,7 @@ void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube
 }
 
 void useCube(Cube& cube, FileHandler& fh) {
-
+    cube.displayCube();
     cube.reset();// TODO: after saving, also reset file
     fh.reset();
 }

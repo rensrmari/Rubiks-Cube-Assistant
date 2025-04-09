@@ -20,6 +20,7 @@
 #include <stack>
 #include <map>
 #include <set>
+#include <vector>
 using namespace std;
 
 class Cube {
@@ -117,42 +118,81 @@ private:
      * Processes a valid move.
      * @param letter A letter representing a valid move on the Rubik's cube.
      */
-    void processMove(char letter); //TODO: string?
+    void processMove(char letter);
 
     /**
-     * Performs a clockwise turn on the top.
+     * Places a given color segment in a given row of a face.
+     * @param face The index of the face to receive the new colors.
+     * @param colors The color to place into the face.
+     * @param row The row to place the colors in.
+     */
+    void placeRow(int face, vector<char> colors, int row);
+
+    /**
+     * Places a given color segment in a given column of a face.
+     * @param face The index of the face to receive the new colors.
+     * @param colors The color to place into the face.
+     * @param col The column to place the colors in.
+     */
+    void placeCol(int face, vector<char> colors, int col);
+
+    /**
+     * Gets a row of a face.
+     * @param face The index of the face to check.
+     * @param row The row of the face.
+     * @return The colors of a segment in a face.
+     */
+    vector<char> getRow(int face, int row) const;
+
+    /**
+     * Gets a column of a face.
+     * @param face The index of the face to check.
+     * @param col The column of the face.
+     * @return The colors of a segment in a face.
+     */
+    vector<char> getCol(int face, int col) const;
+
+    /**
+     * Rotates the colors of a given face in a clockwise fashion.
+     * @param face The index of the face to rotate.
+     */
+    void rotateFace(int face);
+
+    /**
+     * Performs a clockwise turn on the top side, rotating it.
+     * Switches the topmost rows of the left, front, right, and back faces.
      */
     void turnU();
 
     /**
-     * Performs a clockwise turn on the left side.
+     * Performs a clockwise turn on the left side, rotating it.
+     * Switches the columns of the top (leftmost), front (leftmost), bottom (leftmost), and back (rightmost) faces.
      */
     void turnL();
 
     /**
-     * Performs a clockwise turn on the front.
+     * Performs a clockwise turn on the front side, rotating it.
+     * Switches the top row (bottom), right column (leftmost), bottom row (topmost), and left column (rightmost) faces.
      */
     void turnF();
 
     /**
-     * Performs a clockwise turn on the right.
+     * Performs a clockwise turn on the right side, rotating it.
+     * Switches the columns of the top (rightmost), back (leftmost), bottom (rightmost), and front (rightmost) faces.
      */
     void turnR();
 
     /**
-     * Performs a clockwise turn on the back.
+     * Performs a clockwise turn on the back side (looks counterclockwise from the front), rotating it.
+     * Switches the top row (topmost), left column (leftmost), bottom row (bottom), and right (rightmost) faces.
      */
     void turnB();
 
     /**
-     * Performs a clockwise turn on the bottom.
+     * Performs a clockwise turn on the bottom side.
+     * Switching the bottom rows on left, front, right, and back faces.
      */
     void turnD();
-
-    /**
-     * Performs a rotation
-     */
-
 
     /**
      * Undoes a move TODO: stack

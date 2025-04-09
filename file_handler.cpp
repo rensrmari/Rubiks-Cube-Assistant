@@ -200,7 +200,32 @@ bool FileHandler::checkTaken(const string& name) const {
 }
 
 void FileHandler::saveCubeToFile(const Cube& cube) {
+    ofstream ofs(file);
 
+    if (!ofs.is_open()) {
+        cout << "\nCould not open \"" << file << "\" for saving.\n";
+        return;
+    } else {
+        cout << "\nSaving cube data...\n";
+    }
+
+    // Save other Cubes in the file, if any.
+    if (checkTaken(cube.getName()) && checkValidFile(false)) {
+        savedCubes[cube.getName()] = cube;
+        
+        for (const auto& pair : savedCubes) {
+            convertCubeData(ofs, pair.second); // TODO: FIX
+        }
+
+        cout << "Saved " << cube.getName() << "'s cube to a loaded \"" << file << "\".\n";
+    } else { // Otherwise, save the Cube to an empty file
+        convertCubeData(ofs, cube);
+        cout << "Saved " << cube.getName() << "'s cube to an empty \"" << file << "\".\n";
+    }
+}
+
+void FileHandler::convertCubeData(ofstream& ofs, const Cube& cube) const {
+    ofs << cube.getName() << ", " + cube.getScramble() << ", " << cube.getMoves() << cube.getCurrentMoves() << ", " << cube.getTotalMoves() << endl;
 }
 
 void FileHandler::reset() {

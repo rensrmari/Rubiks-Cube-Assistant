@@ -50,47 +50,71 @@ public:
     /**
      * Constructor for cube that applies the original scramble, subsequent moves, and total moves.
      * @param name A unique name.
-     * @param scramble A string representing the original scramble of the cube.
+     * @param scramble A string representing the original scramble of the Cube.
      * @param moves A string of applied moves.
      * @param totalMoves The total number of moves.
      */
     Cube(const string& name, const string& scramble, const string& moves, int totalMoves);
 
     /**
-     * Gets the name of the cube.
-     * @return The name of the cube.
+     * Gets the name of the Cube.
+     * @return The name of the Cube.
      */
     string getName() const;
 
     /**
-     * Sets the name of the cube.
-     * @param name The name of the cube.
+     * Sets the name of the Cube.
+     * @param name The name of the Cube.
      */
     void setName(const string& name);
 
     /**
-     * Sets the scramble of the cube.
+     * Gets the scramble of the Cube.
+     * @return The scramble.
+     */
+    string getScramble() const;
+
+    /**
+     * Sets the scramble of the Cube.
      * @param scramble The scramble.
      */
     void setScramble(const string& scramble);
 
     /**
-     * Gets the move count of the cube.
+     * Gets the original moves of the Cube.
+     * @return The original moves.
+     */
+    string getMoves() const;
+
+    /**
+     * Gets the current moves of the Cube.
+     */
+    string getCurrentMoves() const;
+
+    /**
+     * Gets the move count of the Cube.
      * @return The total moves.
      */
     int getTotalMoves() const;
 
     /**
-     * Displays the state of the cube. //TODO: display commands.
+     * Displays the state of the Cube.
+     * @param printCommands Whether or not commands should be displayed.
      */
-    void displayCube() const;
+    void displayState(bool printCommands) const;
 
     /**
      * Performs a sequence of moves on the cube.
      * @param moves A set of moves.
+     * @param update Whether or not the moves should update the current moves and counter.
      * @return A string representing the moves, each separated by spaces.
      */
-    string doMoves(const string& moves);
+    string doMoves(const string& moves, bool update);
+
+    /**
+     * Undoes a move, outputting the result of the undo.
+     */
+    void undo();
 
     /**
      * Resets the Cube object.
@@ -103,7 +127,7 @@ private:
     static const map<int, char> FACE_COLORS;
 
     /**
-     * Sets the cube to a solved state.
+     * Sets the Cube to a solved state.
      */
     void createSolved();
 
@@ -195,9 +219,14 @@ private:
     void turnD();
 
     /**
-     * Undoes a move TODO: stack
+     * Rotates the Cube clockwise along the x-axis.
      */
+    void rotX();
 
+    /**
+     * Rotates the Cube clockwise along the y-axis.
+     */
+    void rotY();
 
     /**
      * Returns a colored representation of a face's segment.
@@ -209,17 +238,37 @@ private:
     string printFaceSegment(int side, int width, int row) const;
 
     /**
-     * Prints a specified number of spaces.
+     * Returns a specified number of spaces.
      * @param spaces The number of spaces.
      * @return A string of spaces.
      */
     string printSpacing(int spaces) const;
 
+    /**
+     * Returns a segment of a command display with spacing and advances a counter to the next line.
+     * @param spacing The number of spaces to include.
+     * @param counter The current line.
+     * @param print Whether or not the segment should be returned.
+     */
+    string printCommandWithSpacing(int spacing, int& counter, bool print) const;
+
+    /**
+     * Returns a segment of the command display.
+     * @param line The line to return.
+     * return A line of the command display.
+     */
+    string printCommandSegment(int line) const;
+
+    /**
+     * Prints the current moves.
+     */
+    void printCurrentMoves() const;
+
     char stickers[NUM_FACES][SIZE][SIZE];
     string name;
     string scramble;
     string moves;
-    stack<string> newMoves;
+    stack<string> currentMoves;
     int totalMoves;
 };
 

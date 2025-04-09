@@ -9,7 +9,6 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
-#include <map> // TODO: delete
 using namespace std;
 
 void handleNewCube(Cube& cube, FileHandler& fh, bool randomized, bool& original, bool& usingCube);
@@ -17,7 +16,6 @@ void applyRandomScramble(Cube& cube, string& scramble);
 void applyManualScramble(Cube& cube, string& scramble);
 void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube);
 void useCube(Cube& cube, FileHandler& fh);
-void saveCube(const Cube& cube);
 
 char getCharacterInput();
 void switchMenu(bool& original, bool& updated);
@@ -206,7 +204,7 @@ void applyRandomScramble(Cube& cube, string& scramble) {
         int validModifiersIdx = rand() % validModifiers.length();
 
         string add = string(1, validTurns[validTurnsIdx]) + string(1, validModifiers[validModifiersIdx]);
-        cube.doMoves(add);
+        cube.doMoves(add, false);
         scramble += add;
 
         // Increment counter.
@@ -237,7 +235,7 @@ void applyManualScramble(Cube& cube, string& scramble) {
         string move;
         while (iss >> move) {
             if (Cube::checkMoves(move)) { // See if move line was valid
-                cube.doMoves(move);
+                cube.doMoves(move, false);
                 scramble += move;
             } else if (move == STOP_STR_1 || move == STOP_STR_2) { // Check for sentinel to terminate
                 stop = true;
@@ -294,9 +292,67 @@ void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube
     }
 }
 
+/**
+ * Handles the logic of using the cube.
+ * Allows the user to interact with the cube and assistant as well as save and exit.
+ */
 void useCube(Cube& cube, FileHandler& fh) {
-    cube.displayCube();
-    cube.reset();// TODO: after saving, also reset file
+    const string EXIT_COMMAND = "EXIT";
+    const string SAVE_COMMAND = "SAVE";
+    const string UNDO_COMMAND = "UNDO";
+    const string HINT_COMMAND = "HINT";
+    const string SOLVE_COMMAND = "SOLVE";
+
+    Assistant assistant(cube);
+    string userInput;
+    bool recentlySaved = true;
+    bool invalidInput = false;
+
+    while (true) {
+        // Display the state of the cube and valid commands, but avoid repeating when provided invalid input.
+        if (!invalidInput) {
+            cout << "\n[" << cube.getName() << "'S CUBE]\n";
+            cube.displayState(true);
+            invalidInput = false;
+        }
+
+        // Prompt for a command.
+        cout << "Please enter a command or sequence of moves (EX: R2 U2 R): ";
+        getline(cin, userInput);
+
+        // Process the user's command.
+        if (Cube::checkMoves(userInput)) { // First check if it is a valid sequence
+            cube.doMoves(userInput, true);
+            recentlySaved = false;
+        } else if (userInput == EXIT_COMMAND) { // If exiting and the user has performed moves, ask if they would like to save
+            if (!recentlySaved) {
+                cout << "\nYou haven't saved your data, would you like to save it now (Y/N)? ";
+                char userResponse = getCharacterInput();
+
+                if (userResponse == 'Y') {
+                    fh.saveCubeToFile(cube);
+                }
+            }
+
+            cout << "\nYou have finished using " << cube.getName() << "'s cube.\n";
+
+            break;
+        } else if (userInput == SAVE_COMMAND) {
+            fh.saveCubeToFile(cube);
+            recentlySaved = true;
+        } else if (userInput == UNDO_COMMAND) {
+            cube.undo();
+        } else if (userInput == HINT_COMMAND) {
+            
+        } else if (userInput == SOLVE_COMMAND) {
+            recentlySaved = false;
+        } else {
+            cout << "Invalid input. ";
+            invalidInput = true;
+        }
+    }
+
+    cube.reset();
     fh.reset();
 }
 
@@ -313,7 +369,7 @@ void switchMenu(bool& original, bool& updated) {
  * Displays title menu and provides valid options.
  */
 void displayTitle() {
-    cout << "\nWelcome to the Rubik's Cube Assistant!\n";
+    cout << "\n\nWelcome to the Rubik's Cube Assistant!\n";
     cout << "\t(N) NEW CUBE\n";
     cout << "\t(L) LOAD CUBE\n";
     cout << "\t(G) GUIDE\n";
@@ -325,7 +381,7 @@ void displayTitle() {
  * Prints new cube menu and provides valid options.
  */
 void displayNewCube() {
-    cout << "\nNEW CUBE\n"
+    cout << "\n\n[NEW CUBE]\n"
          << "\t(R) Randomly generate a new Rubik's cube\n"
          << "\t(M) Manually scramble your Rubik's cube\n"
          << "What would you like to do? ";
@@ -335,14 +391,14 @@ void displayNewCube() {
  * Prints load cube menu and provides valid options.
  */
 void displayLoadCube() {
-    cout << "\nLOAD CUBE";
+    cout << "\n\n[LOAD CUBE]";
 }
 
 /**
  * Prints guide and provides valid options.
  */
 void displayGuide() {
-    cout << "\nGUIDE\n"
+    cout << "\n\n[GUIDE]\n"
          << "The Rubik's Cube Assistant program allows you to interact with a Rubik's cube with guidance of\n"
          << "a computer using the beginner's method.\n\n";
 

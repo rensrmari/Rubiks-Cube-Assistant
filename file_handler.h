@@ -74,7 +74,7 @@ public:
 	bool checkTaken(const string& name) const;
 
 	/**
-	 * Saves all the stored Cubes into the file.
+	 * Saves a given Cube into the file.
 	 * @param cube The Cube to save.
 	 */
 	void saveCubeToFile(const Cube& cube);
@@ -83,7 +83,7 @@ public:
 	 * Resets the FileHandler object.
 	 */
 	void reset();
-private: // TODO: save to map, then overwrite output file, or fstream it
+private:
 	/**
 	 * Processes a portion of a line until a comma is reached.
 	 * @param iss The istringstream to update.
@@ -99,6 +99,13 @@ private: // TODO: save to map, then overwrite output file, or fstream it
 	 * @param width The column width.
 	 */
 	void displayTableRow(const string& first, const string& second, int width) const;
+
+	/**
+	 * Produces a line of Cube data and saves it to a file.
+	 * @param ofs The ofstream to write to.
+	 * @param cube The Cube to process.
+	 */
+	void convertCubeData(ofstream& ofs, const Cube& cube) const;
 
 	string file;
 	map<string, Cube> savedCubes; // << Cube.name << ", " << Cube.moves << etc.	

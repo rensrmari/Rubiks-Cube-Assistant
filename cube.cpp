@@ -99,8 +99,8 @@ Cube::Cube(const string& name, const string& scramble, const string& moves, int 
 	this->moves = moves;
 	this->totalMoves = totalMoves;
 	createSolved();
-	doMoves(scramble);
-	doMoves(moves);
+	doMoves(scramble, false);
+	doMoves(moves, false);
 }
 
 string Cube::getName() const { return name; }
@@ -108,6 +108,27 @@ string Cube::getName() const { return name; }
 void Cube::setName(const string& name) { this->name = name; }
 
 void Cube::setScramble(const string& scramble) { this->scramble = scramble; }
+
+string Cube::getScramble() const { return scramble; }
+
+string Cube::getMoves() const { return moves; }
+
+string Cube::getCurrentMoves() const {
+	string res = "";
+	stack<string> temp = currentMoves;
+	vector<string> reversed;
+
+	while (temp.size() > 0) {
+		reversed.push_back(temp.top());
+		temp.pop();
+	}
+
+	for (string move : reversed) {
+		res += move;
+	}
+
+	return res;
+}
 
 int Cube::getTotalMoves() const { return totalMoves; }
 
@@ -125,45 +146,62 @@ void Cube::createSolved() {
 	}
 }
 
-void Cube::displayCube() const {
-	const int LEFT_PADDING = 8;
+void Cube::displayState(bool printCommands) const {
 	const int INDIV_WIDTH = 2;
 	const int FACE_SPACING = 5;
-	const int FACE_WIDTH = INDIV_WIDTH * 3 + 2;
+	const int FACE_WIDTH = INDIV_WIDTH * SIZE + (SIZE - 1);
+	
+	const int LEFT_PADDING = 3;
 	const int MIDDLE_PADDING = LEFT_PADDING + FACE_WIDTH + FACE_SPACING;
+	const int RIGHT_PADDING = 8;
+	const int RIGHT_PADDING_FROM_MIDDLE = (FACE_WIDTH * 2) + (FACE_SPACING * 2) + RIGHT_PADDING;
+	const int RIGHT_PADDING_FROM_LEFT = RIGHT_PADDING_FROM_MIDDLE + (FACE_WIDTH * 2) + FACE_SPACING + LEFT_PADDING;
+
+	const int COMMAND_LENGTH = 25;
+	int count = 1;
 
 	// Print the top segments of the cube.
-	cout << printSpacing(MIDDLE_PADDING) << "TOP\n"
-	     << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 0) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 1) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 2) << endl << endl;
+	cout << endl << endl << printSpacing(MIDDLE_PADDING) << "TOP" << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE + (FACE_WIDTH - 3), count, printCommands) << endl
+	     << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printCommandWithSpacing(RIGHT_PADDING_FROM_LEFT, count, printCommands) << endl;
 
 	// Print the left, front, right, and back segments of the cube.
-	cout << printSpacing(LEFT_PADDING) << "LEFT"                                        // Headers
+	cout << printSpacing(LEFT_PADDING) << "LEFT"
 		 << printSpacing(FACE_WIDTH - 4 + FACE_SPACING) << "FRONT"
 		 << printSpacing(FACE_WIDTH - 5 + FACE_SPACING) << "RIGHT"
-		 << printSpacing(FACE_WIDTH - 5 + FACE_SPACING) << "BACK" << endl;
+		 << printSpacing(FACE_WIDTH - 5 + FACE_SPACING) << "BACK" << printCommandWithSpacing(RIGHT_PADDING + (FACE_WIDTH - 4), count, printCommands) << endl;
 
-	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 0) // 1st rows
+	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 0)
 		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::FRONT, INDIV_WIDTH, 0)
 		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::RIGHT, INDIV_WIDTH, 0)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 0) << endl;
+		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl;
 
-	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 1) // 2nd rows
+	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 1)
 	 	 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::FRONT, INDIV_WIDTH, 1)
 	 	 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::RIGHT, INDIV_WIDTH, 1)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 1) << endl;
+		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl;
 
-	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 2) // 3rd rows
+	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 2)
 		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::FRONT, INDIV_WIDTH, 2)
 		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::RIGHT, INDIV_WIDTH, 2)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 2) << endl << endl;
+		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl
+		 << printCommandWithSpacing(RIGHT_PADDING_FROM_LEFT, count, printCommands) << endl;
 
 	// Print the bottom segments of the cube.
-	cout << printSpacing(MIDDLE_PADDING) << "BOTTOM\n"
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 0) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 1) << endl
+	cout << printSpacing(MIDDLE_PADDING) << "BOTTOM" << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE + (FACE_WIDTH - 6), count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
 		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 2) << endl << endl;
+		
+	// Print cube data.
+	string scrambleString = tokenizeMoves(scramble);
+	cout << "Original scramble: " << (scrambleString.length() > 0 ? scrambleString : "None") << endl;
+	cout << "Total moves: " << totalMoves << endl;
+	cout << "Current moves: ";
+	printCurrentMoves();
+	cout << endl;
 }
 
 string Cube::printFaceSegment(int side, int width, int row) const {
@@ -208,11 +246,76 @@ string Cube::printSpacing(int spacing) const {
 	return oss.str();
 }
 
-string Cube::doMoves(const string& moves) {
+string Cube::printCommandWithSpacing(int spacing, int& counter, bool print) const {
+	string res = "";
+
+	if (print) {
+		res = printSpacing(spacing) + printCommandSegment(counter);
+		counter++;
+	} 
+
+	return res;
+}
+
+string Cube::printCommandSegment(int line) const {
+	switch (line) {
+		case 1:
+			return "-------------------------------------------------------------------------------";
+		case 2:
+			return "| COMMANDS                                                                    |";
+		case 3:
+			return "| --------                                                                    |";
+		case 4:
+			return "|  U: Clockwise turn on the top side.          Note: You can append a \"'\"     |";
+		case 5:
+			return "|  L: Clockwise turn on the left side.               to a letter for          |";
+		case 6:
+			return "|  F: Clockwise turn on the front side.              counterclockwise moves,  |";
+		case 7:
+			return "|  R: Clockwise turn on the right side.              or \"2\" for two moves.    |";
+		case 8: 
+			return "|  B: Clockwise turn on the back side.                                        |";
+		case 9:
+			return "|  D: Clockwise turn on the bottom side.                                      |";
+		case 10:
+			return "|  x: Clockwise rotation on the x-axis.                       HINT     SOLVE  |";
+		case 11:
+			return "|  y: Clockwise rotation on the y-axis.            UNDO       SAVE      EXIT  |";
+		case 12:
+			return "-------------------------------------------------------------------------------";
+		default:
+			return "";
+	}
+
+	return "";
+}
+
+void Cube::printCurrentMoves() const {
+	stack<string> temp = currentMoves;
+	vector<string> reversed;
+	bool moves = false;
+
+	while (temp.size() > 0) {
+		reversed.push_back(temp.top());
+		temp.pop();
+		moves = true;
+	}
+
+	if (moves) {
+		for (string move : reversed) {
+			cout << move << " ";
+		}
+	} else {
+		cout << "None";
+	}
+}
+
+string Cube::doMoves(const string& moves, bool update) {
 	string res = "";
 
 	if (checkMoves(moves)) {
-		res = tokenizeMoves(moves); // Separate moves with spaces
+		// Process the moves if valid.
+		res = tokenizeMoves(moves);
 		istringstream iss(res);
 		string move;
 
@@ -233,7 +336,7 @@ string Cube::doMoves(const string& moves) {
 
 			if (!prime && !twice) { // No modifier
 				processMove(letter);
-			} else if (twice || prime && twice) { // Turning a face twice in either direction ends up the same
+			} else if (twice) { // Turning a face twice in either direction ends up the same
 				processMove(letter);
 				processMove(letter);
 			} else { // Prime moves are counterclockwise, which is the same as three times clockwise
@@ -241,6 +344,16 @@ string Cube::doMoves(const string& moves) {
 				processMove(letter);
 				processMove(letter);
 			}
+
+			// Add the move to the current moves.
+			if (update) {
+				currentMoves.push(move);
+			}
+		}
+
+		// Update the counter.
+		if (update) {
+			totalMoves += countMoves(res);
 		}
 	}
 
@@ -288,6 +401,12 @@ void Cube::processMove(char letter) {
 			break;
 		case 'D':
 			turnD();
+			break;
+		case 'x':
+			rotX();
+			break;
+		case 'y':
+			rotY();
 			break;
 	}
 }
@@ -456,6 +575,56 @@ void Cube::turnD() {
 	placeRow(Faces::RIGHT, frontSide, 2);
 	placeRow(Faces::BACK, rightSide, 2);
 	placeRow(Faces::LEFT, backSide, 2);
+}
+
+void Cube::rotX() {
+
+}
+
+void Cube::rotY() {
+
+}
+
+void Cube::undo() {
+	if (currentMoves.size() > 0) {
+		string undoneMove = currentMoves.top();
+		currentMoves.pop();
+		bool prime = false;
+		bool twice = false;
+
+		for (int i = 0; i < undoneMove.length(); i++) {
+			if (undoneMove[i] == '\'') {
+				prime = true;
+			}
+
+			if (undoneMove[i] == '2') {
+				twice = true;
+			}
+		}
+
+		char letter = undoneMove[0];
+		if (!prime && !twice) { // A prime (counterclockwise) move is the opposite of a normal (clockwise) move
+			doMoves(undoneMove + "'", false);
+		} else if (twice) {
+			// Remove the double modifier, leaving the rest of the move intact, and perform the opposite move.
+			if (prime) {
+				processMove(letter);
+				undoneMove.erase(2);
+			} else {
+				doMoves(undoneMove + "'", false);
+				undoneMove.erase(1);
+			}
+
+			currentMoves.push(undoneMove);
+		} else { // A prime move is canceled out with a normal move
+			processMove(letter);
+		}
+
+		totalMoves--;
+		cout << "\nUndid " << undoneMove << ".\n";
+	} else {
+		cout << "\nNo current moves to undo.\n";
+	}
 }
 
 void Cube::reset() {

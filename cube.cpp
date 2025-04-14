@@ -302,8 +302,8 @@ void Cube::printCurrentMoves() const {
 	}
 
 	if (moves) {
-		for (string move : reversed) {
-			cout << move << " ";
+		for (int i = reversed.size() - 1; i >= 0; i--) {
+			cout << reversed[i] << " ";
 		}
 	} else {
 		cout << "None";
@@ -411,13 +411,37 @@ void Cube::processMove(char letter) {
 	}
 }
 
-void Cube::placeRow(int face, vector<char> colors, int row) {
+vector<vector<char>> Cube::getFace(int face) const {
+	vector<vector<char>> colors;
+
+	for (int i = 0; i < SIZE; i++) {
+		vector<char> row;
+		
+		for (int j = 0; j < SIZE; j++) {
+			row.push_back(stickers[face][i][j]);
+		}
+
+		colors.push_back(row);
+	}
+
+	return colors;
+}
+
+void Cube::placeFace(const vector<vector<char>>& colors, int face) {
+	for (int i = 0; i < SIZE; i++) {
+		for (int j = 0; j < SIZE; j++) {
+			stickers[face][i][j] = colors[i][j];
+		}
+	}
+}
+
+void Cube::placeRow(const vector<char>& colors, int face, int row) {
 	for (int i = 0; i < SIZE; i++) {
 		stickers[face][row][i] = colors[i];
 	}
 }
 
-void Cube::placeCol(int face, vector<char> colors, int col) {
+void Cube::placeCol(const vector<char>& colors, int face, int col) {
 	for (int i = 0; i < SIZE; i++) {
 		stickers[face][i][col] = colors[i];
 	}
@@ -455,10 +479,10 @@ void Cube::rotateFace(int face) {
 	reverse(leftCol.begin(), leftCol.end());
 
 	// Replace each segment of the face.
-	placeCol(face, topRow, 2);    // Top to right
-	placeRow(face, rightCol, 2);  // Right to bottom
-	placeCol(face, bottomRow, 0); // Bottom to left
-	placeRow(face, leftCol, 0);   // Left to top
+	placeCol(topRow, face, 2);    // Top to right
+	placeRow(rightCol, face, 2);  // Right to bottom
+	placeCol(bottomRow, face, 0); // Bottom to left
+	placeRow(leftCol, face, 0);   // Left to top
 }
 
 void Cube::turnU() {
@@ -471,10 +495,10 @@ void Cube::turnU() {
 	vector<char> backSide = getRow(Faces::BACK, 0);
 	vector<char> leftSide = getRow(Faces::LEFT, 0);
 
-	placeRow(Faces::FRONT, rightSide, 0);
-	placeRow(Faces::RIGHT, backSide, 0);
-	placeRow(Faces::BACK, leftSide, 0);
-	placeRow(Faces::LEFT, frontSide, 0);
+	placeRow(rightSide, Faces::FRONT, 0);
+	placeRow(backSide, Faces::RIGHT, 0);
+	placeRow(leftSide, Faces::BACK, 0);
+	placeRow(frontSide, Faces::LEFT, 0);
 }
 
 void Cube::turnL() {
@@ -492,10 +516,10 @@ void Cube::turnL() {
 	reverse(backSide.begin(), backSide.end());
 	reverse(bottomSide.begin(), bottomSide.end());
 
-	placeCol(Faces::TOP, backSide, 0);
-	placeCol(Faces::FRONT, topSide, 0);
-	placeCol(Faces::BOTTOM, frontSide, 0);
-	placeCol(Faces::BACK, bottomSide, 2);
+	placeCol(backSide, Faces::TOP, 0);
+	placeCol(topSide, Faces::FRONT, 0);
+	placeCol(frontSide, Faces::BOTTOM, 0);
+	placeCol(bottomSide, Faces::BACK, 2);
 }
 
 void Cube::turnF() {
@@ -513,10 +537,10 @@ void Cube::turnF() {
 	reverse(leftSide.begin(), leftSide.end());
 	reverse(rightSide.begin(), rightSide.end());
 
-	placeRow(Faces::TOP, leftSide, 2);
-	placeCol(Faces::RIGHT, topSide, 0);
-	placeRow(Faces::BOTTOM, rightSide, 0);
-	placeCol(Faces::LEFT, bottomSide, 2);
+	placeRow(leftSide, Faces::TOP, 2);
+	placeCol(topSide, Faces::RIGHT, 0);
+	placeRow(rightSide, Faces::BOTTOM, 0);
+	placeCol(bottomSide, Faces::LEFT, 2);
 }
 
 void Cube::turnR() {
@@ -534,10 +558,10 @@ void Cube::turnR() {
 	reverse(topSide.begin(), topSide.end());
 	reverse(backSide.begin(), backSide.end());
 
-	placeCol(Faces::TOP, frontSide, 2);
-	placeCol(Faces::FRONT, bottomSide, 2);
-	placeCol(Faces::BOTTOM, backSide, 2);
-	placeCol(Faces::BACK, topSide, 0);
+	placeCol(frontSide, Faces::TOP, 2);
+	placeCol(bottomSide, Faces::FRONT, 2);
+	placeCol(backSide, Faces::BOTTOM, 2);
+	placeCol(topSide, Faces::BACK, 0);
 }
 
 void Cube::turnB() {
@@ -555,10 +579,10 @@ void Cube::turnB() {
 	reverse(topSide.begin(), topSide.end());
 	reverse(bottomSide.begin(), bottomSide.end());
 
-	placeRow(Faces::TOP, rightSide, 0);
-	placeCol(Faces::RIGHT, bottomSide, 2);
-	placeRow(Faces::BOTTOM, leftSide, 2);
-	placeCol(Faces::LEFT, topSide, 0);
+	placeRow(rightSide, Faces::TOP, 0);
+	placeCol(bottomSide, Faces::RIGHT, 2);
+	placeRow(leftSide, Faces::BOTTOM, 2);
+	placeCol(topSide, Faces::LEFT, 0);
 }
 
 void Cube::turnD() {
@@ -571,18 +595,67 @@ void Cube::turnD() {
 	vector<char> backSide = getRow(Faces::BACK, 2);
 	vector<char> leftSide = getRow(Faces::LEFT, 2);
 
-	placeRow(Faces::FRONT, leftSide, 2);
-	placeRow(Faces::RIGHT, frontSide, 2);
-	placeRow(Faces::BACK, rightSide, 2);
-	placeRow(Faces::LEFT, backSide, 2);
+	placeRow(leftSide, Faces::FRONT, 2);
+	placeRow(frontSide, Faces::RIGHT, 2);
+	placeRow(rightSide, Faces::BACK, 2);
+	placeRow(backSide, Faces::LEFT, 2);
 }
 
 void Cube::rotX() {
+	// Rotate the left face counterclockwise.
+	rotateFace(Faces::LEFT);
+	rotateFace(Faces::LEFT);
+	rotateFace(Faces::LEFT);
 
+	// Rotate the right face clockwise.
+	rotateFace(Faces::RIGHT);
+
+	// Switch the middle faces.
+	vector<vector<char>> frontFace = getFace(Faces::FRONT);
+	vector<vector<char>> bottomFace = getFace(Faces::BOTTOM);
+	vector<vector<char>> backFace = getFace(Faces::BACK);
+	vector<vector<char>> topFace = getFace(Faces::TOP);
+
+	// Reverse the back and top faces to properly translate them
+	// from the back and to the top respectively (reverse their rows and vertical orders).
+	for (int i = 0; i < SIZE; i++) {
+		reverse(backFace[i].begin(), backFace[i].end());
+		reverse(topFace[i].begin(), topFace[i].end());
+	}
+
+	vector<char> backFaceBottom = backFace[2];
+	backFace[2] = backFace[0];
+	backFace[0] = backFaceBottom;
+
+	vector<char> topFaceBottom = topFace[2];
+	topFace[2] = topFace[0];
+	topFace[0] = topFaceBottom;
+
+	placeFace(frontFace, Faces::TOP);
+	placeFace(bottomFace, Faces::FRONT);
+	placeFace(backFace, Faces::BOTTOM);
+	placeFace(topFace, Faces::BACK);
 }
 
 void Cube::rotY() {
+	// Rotate the top face clockwise.
+	rotateFace(Faces::TOP);
 
+	// Rotate the bottom face counterclockwise.
+	rotateFace(Faces::BOTTOM);
+	rotateFace(Faces::BOTTOM);
+	rotateFace(Faces::BOTTOM);
+
+	// Switch the middle faces.
+	vector<vector<char>> frontFace = getFace(Faces::FRONT);
+	vector<vector<char>> rightFace = getFace(Faces::RIGHT);
+	vector<vector<char>> backFace = getFace(Faces::BACK);
+	vector<vector<char>> leftFace = getFace(Faces::LEFT);
+
+	placeFace(frontFace, Faces::LEFT);
+	placeFace(rightFace, Faces::FRONT);
+	placeFace(backFace, Faces::RIGHT);
+	placeFace(leftFace, Faces::BACK);
 }
 
 void Cube::undo() {
@@ -604,14 +677,14 @@ void Cube::undo() {
 
 		char letter = undoneMove[0];
 		if (!prime && !twice) { // A prime (counterclockwise) move is the opposite of a normal (clockwise) move
-			doMoves(undoneMove + "'", false);
+			doMoves(string(1, letter) + "'", false);
 		} else if (twice) {
 			// Remove the double modifier, leaving the rest of the move intact, and perform the opposite move.
 			if (prime) {
 				processMove(letter);
 				undoneMove.erase(2);
 			} else {
-				doMoves(undoneMove + "'", false);
+				doMoves(string(1, letter) + "'", false);
 				undoneMove.erase(1);
 			}
 
@@ -625,6 +698,11 @@ void Cube::undo() {
 	} else {
 		cout << "\nNo current moves to undo.\n";
 	}
+}
+
+bool Cube::operator==(const Cube& rhs) const {
+	return name == rhs.name && scramble == rhs.scramble && moves == rhs.moves &&
+				   currentMoves == rhs.currentMoves && totalMoves == rhs.totalMoves;
 }
 
 void Cube::reset() {

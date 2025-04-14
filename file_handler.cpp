@@ -21,10 +21,11 @@ string FileHandler::getFileName() const { return file; }
 
 void FileHandler::setFileName(const string& file) { this->file = file; }
 
-int FileHandler::checkValidFile(bool acceptEmpty) {
+int FileHandler::checkValidFile(bool acceptEmpty) const {
     ifstream ifs(file);
-
-    if (!ifs.is_open()) { // First check if unable to open file
+    
+    // First check if unable to open file.
+    if (!ifs.is_open()) {
         return VALID_STATUS::CANT_OPEN;
     }
 
@@ -209,19 +210,14 @@ void FileHandler::saveCubeToFile(const Cube& cube) {
         cout << "\nSaving cube data...\n";
     }
 
-    // Save other Cubes in the file, if any.
-    if (checkTaken(cube.getName()) && checkValidFile(false)) {
-        savedCubes[cube.getName()] = cube;
-        
-        for (const auto& pair : savedCubes) {
-            convertCubeData(ofs, pair.second); // TODO: FIX
-        }
+    // Update Cube data if it exists or add a new entry.
+    savedCubes[cube.getName()] = cube;
 
-        cout << "Saved " << cube.getName() << "'s cube to a loaded \"" << file << "\".\n";
-    } else { // Otherwise, save the Cube to an empty file
-        convertCubeData(ofs, cube);
-        cout << "Saved " << cube.getName() << "'s cube to an empty \"" << file << "\".\n";
+    for (const auto& pair : savedCubes) {
+        convertCubeData(ofs, pair.second);
     }
+
+    cout << "Saved " << cube.getName() << "'s cube to \"" << file << "\".\n";
 }
 
 void FileHandler::convertCubeData(ofstream& ofs, const Cube& cube) const {

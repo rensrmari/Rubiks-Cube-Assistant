@@ -120,6 +120,13 @@ public:
      * Resets the Cube object.
      */
     void reset();
+
+    /**
+     * Checks if Cubes are equal.
+     * @param rhs The Cube to check against.
+     * @return Whether the Cubes are equal or not.
+     */
+    bool operator==(const Cube& rhs) const;
 private:
     static const int NUM_FACES = 6;
     static const int SIZE = 3;
@@ -145,20 +152,34 @@ private:
     void processMove(char letter);
 
     /**
+     * Gets a face of the Cube.
+     * @param face The index of the face to get.
+     * @return The colors of a specified face.
+     */
+    vector<vector<char>> getFace(int face) const;
+
+    /**
+     * Places colors on a specified face of the Cube.
+     * @param colors The colors to use.
+     * @param face The index of the face to give the colors to.
+     */
+    void placeFace(const vector<vector<char>>& colors, int face);
+
+    /**
      * Places a given color segment in a given row of a face.
-     * @param face The index of the face to receive the new colors.
      * @param colors The color to place into the face.
+     * @param face The index of the face to receive the new colors.
      * @param row The row to place the colors in.
      */
-    void placeRow(int face, vector<char> colors, int row);
+    void placeRow(const vector<char>& colors, int face, int row);
 
     /**
      * Places a given color segment in a given column of a face.
-     * @param face The index of the face to receive the new colors.
      * @param colors The color to place into the face.
+     * @param face The index of the face to receive the new colors.
      * @param col The column to place the colors in.
      */
-    void placeCol(int face, vector<char> colors, int col);
+    void placeCol(const vector<char>& colors, int face, int col);
 
     /**
      * Gets a row of a face.
@@ -220,11 +241,15 @@ private:
 
     /**
      * Rotates the Cube clockwise along the x-axis.
+     * Rotates the left face counterclockwise and the right face clockwise.
+     * Switches the middle faces in a clockwise fashion (front -> top, bottom -> front, back -> bottom, top -> back).
      */
     void rotX();
 
     /**
      * Rotates the Cube clockwise along the y-axis.
+     * Rotates the top face clockwise and the bottom face counterclockwise.
+     * Switches the middle faces in a clockwise fashion (front -> left, right -> front, back -> right, left -> back).
      */
     void rotY();
 

@@ -10,8 +10,23 @@ public:
 	 * @param cube The Cube to access.
 	 */
 	Assistant(Cube& cube);
+
+	/**
+	 * 
+	 */
+	void solve();
+
+	/**
+	 * 
+	 */
+
 private:
-	Cube cube;
+	/**
+	 * 
+	 */
+	void checkNext();
+
+	Cube cube; // TODO: really? or pointer? pointer?
 };
 
 // TODO: check valid moves

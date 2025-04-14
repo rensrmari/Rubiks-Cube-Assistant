@@ -7,7 +7,7 @@
 #include <map>
 using namespace std;
 
-class FileHandler { // input same as output. i will overwrite.
+class FileHandler {
 public:
 	enum VALID_STATUS { VALID, CANT_OPEN, NO_DATA, BAD_FORMAT, DUPLICATE_NAMES, INVALID_MOVES, MISMATCHED_MOVES };
 
@@ -39,7 +39,7 @@ public:
 	 * @param acceptEmpty Whether or not empty files should be considered valid.
 	 * @return An integer representing whether or not the file is valid.
 	 */
-	int checkValidFile(bool acceptEmpty);
+	int checkValidFile(bool acceptEmpty) const;
 
 	/**
 	 * Displays an error message that shows up when a file is invalid.
@@ -108,7 +108,7 @@ private:
 	void convertCubeData(ofstream& ofs, const Cube& cube) const;
 
 	string file;
-	map<string, Cube> savedCubes; // << Cube.name << ", " << Cube.moves << etc.	
+	map<string, Cube> savedCubes;
 };
 
 #endif

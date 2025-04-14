@@ -15,7 +15,7 @@ void handleNewCube(Cube& cube, FileHandler& fh, bool randomized, bool& original,
 void applyRandomScramble(Cube& cube, string& scramble);
 void applyManualScramble(Cube& cube, string& scramble);
 void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube);
-void useCube(Cube& cube, FileHandler& fh);
+void useCube(Cube& cube, FileHandler& fh, bool newCube);
 
 char getCharacterInput();
 void switchMenu(bool& original, bool& updated);
@@ -43,6 +43,7 @@ int main() {
     
     FileHandler fh;
     Cube currentCube;
+    bool createdNewCube = false;
     char userInput;
     
     while (true) {
@@ -71,9 +72,12 @@ int main() {
             } else if (userInput == NEW_CUBE_MANUAL_CHAR) {
                 handleNewCube(currentCube, fh, false, isNewCube, usingCube);
             }
+
+            createdNewCube = true;
             
             if (!usingCube) {
                 switchMenu(isNewCube, isTitle);
+                createdNewCube = false;
             }
         } else if (isLoadCube) { // Display load cube menu, providing user with options
             displayLoadCube();
@@ -88,8 +92,9 @@ int main() {
             
             switchMenu(isGuide, isTitle);
         } else { // The user is using the Rubik's cube
-            useCube(currentCube, fh);
+            useCube(currentCube, fh, createdNewCube);
             switchMenu(usingCube, isTitle);
+            createdNewCube = false;
         }
     }
     
@@ -189,6 +194,7 @@ void applyRandomScramble(Cube& cube, string& scramble) {
     if (cin.fail()) {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        numMoves = DEFAULT_MOVES;
         cout << "\nInvalid input, scrambling with " << numMoves << " moves instead.\n\n";
     }
 
@@ -293,10 +299,13 @@ void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube
 }
 
 /**
- * Handles the logic of using the cube.
- * Allows the user to interact with the cube and assistant as well as save and exit.
+ * Handles the logic of using the Cube.
+ * Allows the user to interact with the Cube and assistant as well as save and exit.
+ * @param cube The Cube to interact with.
+ * @param fh The FileHandler to handle the saving of the Cube.
+ * @param newCube Whether or not the cube is new.
  */
-void useCube(Cube& cube, FileHandler& fh) {
+void useCube(Cube& cube, FileHandler& fh, bool newCube) {
     const string EXIT_COMMAND = "EXIT";
     const string SAVE_COMMAND = "SAVE";
     const string UNDO_COMMAND = "UNDO";
@@ -304,16 +313,16 @@ void useCube(Cube& cube, FileHandler& fh) {
     const string SOLVE_COMMAND = "SOLVE";
 
     Assistant assistant(cube);
-    string userInput;
-    bool recentlySaved = true;
+    Cube originalCube = cube;  // Used to check if saving a loaded Cube is needed
+    bool recentlySaved = false;
     bool invalidInput = false;
+    string userInput;
 
     while (true) {
-        // Display the state of the cube and valid commands, but avoid repeating when provided invalid input.
+        // Display the state of the Cube and valid commands, but avoid repeating when provided invalid input.
         if (!invalidInput) {
             cout << "\n[" << cube.getName() << "'S CUBE]\n";
             cube.displayState(true);
-            invalidInput = false;
         }
 
         // Prompt for a command.
@@ -324,8 +333,9 @@ void useCube(Cube& cube, FileHandler& fh) {
         if (Cube::checkMoves(userInput)) { // First check if it is a valid sequence
             cube.doMoves(userInput, true);
             recentlySaved = false;
-        } else if (userInput == EXIT_COMMAND) { // If exiting and the user has performed moves, ask if they would like to save
-            if (!recentlySaved) {
+            invalidInput = false;
+        } else if (userInput == EXIT_COMMAND) { // Prompt user to save new or loaded Cube with changes
+            if (!recentlySaved && (!(originalCube == cube) || newCube)) {
                 cout << "\nYou haven't saved your data, would you like to save it now (Y/N)? ";
                 char userResponse = getCharacterInput();
 
@@ -335,17 +345,23 @@ void useCube(Cube& cube, FileHandler& fh) {
             }
 
             cout << "\nYou have finished using " << cube.getName() << "'s cube.\n";
-
             break;
         } else if (userInput == SAVE_COMMAND) {
             fh.saveCubeToFile(cube);
             recentlySaved = true;
+            invalidInput = false;
         } else if (userInput == UNDO_COMMAND) {
             cube.undo();
+            invalidInput = false;
         } else if (userInput == HINT_COMMAND) {
-            
+            // TODO: hint
+
+            invalidInput = false;
         } else if (userInput == SOLVE_COMMAND) {
+            // TODO: solve
+
             recentlySaved = false;
+            invalidInput = false;
         } else {
             cout << "Invalid input. ";
             invalidInput = true;

@@ -102,7 +102,7 @@ string Assistant::turnEdgeToFace(int face, int newFace, int row, int col, bool i
     char originalColor2 = getAdjEdge(*cube, face, row, col).color;
     int turnsToCheck = 3;
 
-    while (turnsToCheck > 0) {
+    while (turnsToCheck >= 0) {
         turnsToCheck--;
 
         // Check if the edge is in the correct spot.
@@ -270,7 +270,6 @@ StickerData Assistant::findEdge(char color1, char color2) const {
     return res;
 }
 
-
 string Assistant::turnEdgeToBottom(int row, int col) const {
     string sequence = "";
 
@@ -280,8 +279,6 @@ string Assistant::turnEdgeToBottom(int row, int col) const {
         sequence = "F'";
     } else if (row == 1 && col == 2) { // Edge is on the right and only needs a clockwise move
         sequence = "F";
-    } else { // Edge is already on the bottom
-        sequence = "";
     }
 
     return sequence;
@@ -290,11 +287,15 @@ string Assistant::turnEdgeToBottom(int row, int col) const {
 void Assistant::fixFace(int& face, const string& rotations) const {
     // The faces affected by y rotations are 1-4.
     if (rotations == "y") {
-        face = 1 + abs(face - 1) % 5;
+        face = abs(face - 1) % 4;
     } else if (rotations == "y'") {
-        face = 1 + (face + 1) % 5;
-    } else {
-        face = 1 + (face + 2) % 5;
+        face = (face + 1) % 4;
+    } else if (rotations == "y2") {
+        face = (face + 2) % 4;
+    }
+
+    if (face == 0) { // Wrap around to 1
+        face++;
     }
 }
 
@@ -338,22 +339,22 @@ void Assistant::getWhiteCross() {
     processSequence(rotateToFace(face, Cube::TOP, false), "[WHITE CROSS] Get the white center on the top.");
 
     // Position the four white edges next to the white center, with the adjacent colors matching the centers of the sides.
-    vector<StickerData> whiteCrossEdges = {
-        { Cube::TOP, cube->stickers[Cube::TOP][0][1], 0, 1 }, // Top edge
-        { Cube::TOP, cube->stickers[Cube::TOP][1][2], 1, 2 }, // Right edge
-        { Cube::TOP, cube->stickers[Cube::TOP][2][1], 2, 1 }, // Front edge
-        { Cube::TOP, cube->stickers[Cube::TOP][1][0], 1, 0 }  // Left edge
+    vector<pair<int, int>> whiteCrossEdges = {
+        make_pair(0, 1), // Top edge
+        make_pair(1, 2), // Right edge
+        make_pair(2, 1), // Front edge
+        make_pair(1, 0)  // Left edge
     };
     vector<int> adjFaces = { Cube::BACK, Cube::RIGHT, Cube::FRONT, Cube::LEFT };
     int i = 0;
 
     while (!checkWhiteCross()) {
-        StickerData edge = whiteCrossEdges[i]; // An edge slot to possibly correct
+        pair<int, int> edge = whiteCrossEdges[i]; // An edge slot to possibly correct
         int adjFace = adjFaces[i]; // The face the edge slot should be on
         string rotations;
 
         // Check if the edge is in its correct position.
-        if (!checkWhiteCrossEdge(edge.face, edge.row, edge.col)) {
+        if (!checkWhiteCrossEdge(Cube::TOP, edge.first, edge.second)) {
             // If the edge is not correct, locate the correct edge (white and a color that matches an adjacent center color).
             StickerData correctEdge = findEdge('W', cube->stickers[adjFace][1][1]);
             StickerData adjEdge = getAdjEdge(*cube, correctEdge.face, correctEdge.row, correctEdge.col);
@@ -372,7 +373,7 @@ void Assistant::getWhiteCross() {
                 useEdge.row = 2;
                 useEdge.col = 1;
 
-                // Turn the bottom face to position it on the correct face later.
+                // Turn the bottom face to position it on the correct face.
                 processSequence(turnEdgeToFace(useEdge.face, adjFace, useEdge.row, useEdge.col, false), "[WHITE CROSS] Turn the bottom face to position the " + edgeColors + " edge on the " + Cube::FACE_STRINGS.at(adjFace) + " face.");
                 useEdge.face = adjFace;
 

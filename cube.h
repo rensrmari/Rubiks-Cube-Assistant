@@ -25,8 +25,11 @@ using namespace std;
 
 class Cube {
 public:
+    friend class Assistant;
     enum Faces { TOP, LEFT, FRONT, RIGHT, BACK, BOTTOM };
     static const set<char> VALID_MOVES;
+    static const map<char, string> COLOR_STRINGS;
+    static const map<int, string> FACE_STRINGS;
 
     /**
       * Checks whether the set of moves is valid (i.e. no unpaired numbers or apostrophes, only valid letters)
@@ -34,6 +37,13 @@ public:
       * @return Whether or not the moves are valid.
       */
     static bool checkMoves(const string& moves);
+    
+    /**
+     * Separates a sequence with spaces.
+     * @param moves The sequence to tokenize.
+     * @return The tokenizes sequence.
+     */
+    static string tokenizeMoves(const string& moves);
 
     /**
      * Checks the number of moves in a valid sequence.
@@ -128,10 +138,9 @@ public:
      */
     bool operator==(const Cube& rhs) const;
 private:
+    static const map<int, char> FACE_COLORS;
     static const int NUM_FACES = 6;
     static const int SIZE = 3;
-    static const map<char, string> COLOR_STRINGS;
-    static const map<int, char> FACE_COLORS;
 
     /**
      * Sets the Cube to a solved state.
@@ -139,24 +148,10 @@ private:
     void createSolved();
 
     /**
-     * Separates a sequence with spaces.
-     * @param moves The sequence to tokenize.
-     * @return The tokenizes sequence.
-     */
-    string tokenizeMoves(const string& moves) const;
-
-    /**
      * Processes a valid move.
      * @param letter A letter representing a valid move on the Rubik's cube.
      */
     void processMove(char letter);
-
-    /**
-     * Gets a face of the Cube.
-     * @param face The index of the face to get.
-     * @return The colors of a specified face.
-     */
-    vector<vector<char>> getFace(int face) const;
 
     /**
      * Places colors on a specified face of the Cube.
@@ -240,6 +235,20 @@ private:
     void turnD();
 
     /**
+     * Gets a face of the Cube.
+     * @param face The index of the face to get.
+     * @return The colors of a specified face.
+     */
+    vector<vector<char>> getFace(int face) const;
+
+    /**
+     * Gets a face of the Cube, read bottom-top, left-right to help with translation of faces during z rotations.
+     * @param face The index of the face to get.
+     * @return The colors of a specified face.
+     */
+    vector<vector<char>> getZFace(int face) const;
+
+    /**
      * Rotates the Cube clockwise along the x-axis.
      * Rotates the left face counterclockwise and the right face clockwise.
      * Switches the middle faces in a clockwise fashion (front -> top, bottom -> front, back -> bottom, top -> back).
@@ -252,6 +261,13 @@ private:
      * Switches the middle faces in a clockwise fashion (front -> left, right -> front, back -> right, left -> back).
      */
     void rotY();
+
+    /**
+     * Rotates the Cube clockwise along the z-axis.
+     * Rotates the front face clockwise and the back face counterclockwise.
+     * Switches the middle faces in a clockwise fashion (top -> right, left -> top, bottom -> left, right -> bottom).
+     */
+    void rotZ();
 
     /**
      * Returns a colored representation of a face's segment.

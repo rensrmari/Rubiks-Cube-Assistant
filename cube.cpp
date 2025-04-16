@@ -8,22 +8,30 @@
 #include <algorithm>
 using namespace std;
 
-const set<char> Cube::VALID_MOVES = { 'U', 'L', 'F', 'R', 'B', 'D', 'x', 'y' };
-const map<char, string> Cube::COLOR_STRINGS = { // for hint message, annotation of step
+const set<char> Cube::VALID_MOVES = { 'U', 'L', 'F', 'R', 'B', 'D', 'x', 'y', 'z' };
+const map<char, string> Cube::COLOR_STRINGS = {
 	{ 'W', "White" },
+	{ 'O', "Orange" },
 	{ 'G', "Green" },
 	{ 'R', "Red" },
 	{ 'B', "Blue" },
-	{ 'O', "Orange" },
 	{ 'Y', "Yellow" },
 };
+const map<int, string> Cube::FACE_STRINGS = {
+	{ Cube::TOP, "Top" },
+	{ Cube::LEFT, "Left" },
+	{ Cube::FRONT, "Front" },
+	{ Cube::RIGHT, "Right" },
+	{ Cube::BACK, "Back" },
+	{ Cube::BOTTOM, "Bottom" }
+};
 const map<int, char> Cube::FACE_COLORS = {
-	{ Faces::TOP, 'W' },
-	{ Faces::LEFT, 'G' },
-	{ Faces::FRONT, 'R' },
-	{ Faces::RIGHT, 'B' },
-	{ Faces::BACK, 'O' },
-	{ Faces::BOTTOM, 'Y' }
+	{ TOP, 'W' },
+	{ LEFT, 'O' },
+	{ FRONT, 'G' },
+	{ RIGHT, 'R' },
+	{ BACK, 'B' },
+	{ BOTTOM, 'Y' }
 };
 
 bool Cube::checkMoves(const string& moves) {
@@ -61,6 +69,28 @@ bool Cube::checkMoves(const string& moves) {
 	}
 
 	return true;
+}
+
+string Cube::tokenizeMoves(const string& moves) {
+	string res = "";
+	istringstream iss(moves);
+	char ch;
+
+	while (iss >> ch) {
+		char next = iss.peek();
+		
+		// Check for numbers and apostrophes (ex: U, U2, U', and U'2 are all valid moves).
+		if (next == '2') {                // The number will always be the last in a move
+			res += string(1, ch) + "2 ";
+			iss.get();
+		} else if (next == '\'') {        // Apostrophes will always follow the letter
+			res += string(1, ch);
+		} else {                          // Otherwise, the next letter will be another letter or EOF
+			res += string(1, ch) + " ";
+		}
+	}
+
+	return res;
 }
 
 int Cube::countMoves(const string& moves) {
@@ -162,9 +192,9 @@ void Cube::displayState(bool printCommands) const {
 
 	// Print the top segments of the cube.
 	cout << endl << endl << printSpacing(MIDDLE_PADDING) << "TOP" << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE + (FACE_WIDTH - 3), count, printCommands) << endl
-	     << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::TOP, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+	     << printSpacing(MIDDLE_PADDING) << printFaceSegment(TOP, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(TOP, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(TOP, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
 		 << printCommandWithSpacing(RIGHT_PADDING_FROM_LEFT, count, printCommands) << endl;
 
 	// Print the left, front, right, and back segments of the cube.
@@ -173,27 +203,27 @@ void Cube::displayState(bool printCommands) const {
 		 << printSpacing(FACE_WIDTH - 5 + FACE_SPACING) << "RIGHT"
 		 << printSpacing(FACE_WIDTH - 5 + FACE_SPACING) << "BACK" << printCommandWithSpacing(RIGHT_PADDING + (FACE_WIDTH - 4), count, printCommands) << endl;
 
-	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 0)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::FRONT, INDIV_WIDTH, 0)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::RIGHT, INDIV_WIDTH, 0)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl;
+	cout << printSpacing(LEFT_PADDING) << printFaceSegment(LEFT, INDIV_WIDTH, 0)
+		 << printSpacing(FACE_SPACING) << printFaceSegment(FRONT, INDIV_WIDTH, 0)
+		 << printSpacing(FACE_SPACING) << printFaceSegment(RIGHT, INDIV_WIDTH, 0)
+		 << printSpacing(FACE_SPACING) << printFaceSegment(BACK, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl;
 
-	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 1)
-	 	 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::FRONT, INDIV_WIDTH, 1)
-	 	 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::RIGHT, INDIV_WIDTH, 1)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl;
+	cout << printSpacing(LEFT_PADDING) << printFaceSegment(LEFT, INDIV_WIDTH, 1)
+	 	 << printSpacing(FACE_SPACING) << printFaceSegment(FRONT, INDIV_WIDTH, 1)
+	 	 << printSpacing(FACE_SPACING) << printFaceSegment(RIGHT, INDIV_WIDTH, 1)
+		 << printSpacing(FACE_SPACING) << printFaceSegment(BACK, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl;
 
-	cout << printSpacing(LEFT_PADDING) << printFaceSegment(Faces::LEFT, INDIV_WIDTH, 2)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::FRONT, INDIV_WIDTH, 2)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::RIGHT, INDIV_WIDTH, 2)
-		 << printSpacing(FACE_SPACING) << printFaceSegment(Faces::BACK, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl
+	cout << printSpacing(LEFT_PADDING) << printFaceSegment(LEFT, INDIV_WIDTH, 2)
+		 << printSpacing(FACE_SPACING) << printFaceSegment(FRONT, INDIV_WIDTH, 2)
+		 << printSpacing(FACE_SPACING) << printFaceSegment(RIGHT, INDIV_WIDTH, 2)
+		 << printSpacing(FACE_SPACING) << printFaceSegment(BACK, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl
 		 << printCommandWithSpacing(RIGHT_PADDING_FROM_LEFT, count, printCommands) << endl;
 
 	// Print the bottom segments of the cube.
 	cout << printSpacing(MIDDLE_PADDING) << "BOTTOM" << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE + (FACE_WIDTH - 6), count, printCommands) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
-		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(Faces::BOTTOM, INDIV_WIDTH, 2) << endl << endl;
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(BOTTOM, INDIV_WIDTH, 0) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(BOTTOM, INDIV_WIDTH, 1) << printCommandWithSpacing(RIGHT_PADDING_FROM_MIDDLE, count, printCommands) << endl
+		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(BOTTOM, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl << endl;
 		
 	// Print cube data.
 	string scrambleString = tokenizeMoves(scramble);
@@ -278,10 +308,12 @@ string Cube::printCommandSegment(int line) const {
 		case 9:
 			return "|  D: Clockwise turn on the bottom side.                                      |";
 		case 10:
-			return "|  x: Clockwise rotation on the x-axis.                       HINT     SOLVE  |";
+			return "|  x: Clockwise rotation on the x-axis.                                       |";
 		case 11:
-			return "|  y: Clockwise rotation on the y-axis.            UNDO       SAVE      EXIT  |";
+			return "|  y: Clockwise rotation on the y-axis.                       HINT     SOLVE  |";
 		case 12:
+			return "|  z: Clockwise rotation on the z-axis.            UNDO       SAVE      EXIT  |";
+		case 13:
 			return "-------------------------------------------------------------------------------";
 		default:
 			return "";
@@ -360,28 +392,6 @@ string Cube::doMoves(const string& moves, bool update) {
 	return res;
 }
 
-string Cube::tokenizeMoves(const string& moves) const {
-	string res = "";
-	istringstream iss(moves);
-	char ch;
-
-	while (iss >> ch) {
-		char next = iss.peek();
-		
-		// Check for numbers and apostrophes (ex: U, U2, U', and U'2 are all valid moves).
-		if (next == '2') {                // The number will always be the last in a move
-			res += string(1, ch) + "2 ";
-			iss.get();
-		} else if (next == '\'') {        // Apostrophes will always follow the letter
-			res += string(1, ch);
-		} else {                          // Otherwise, the next letter will be another letter or EOF
-			res += string(1, ch) + " ";
-		}
-	}
-
-	return res;
-}
-
 void Cube::processMove(char letter) {
 	switch (letter) {
 		case 'U':
@@ -408,23 +418,64 @@ void Cube::processMove(char letter) {
 		case 'y':
 			rotY();
 			break;
+		case 'z':
+			rotZ();
+			break;
 	}
 }
 
-vector<vector<char>> Cube::getFace(int face) const {
-	vector<vector<char>> colors;
+void Cube::undo() {
+	if (currentMoves.size() > 0) {
+		string undoneMove = currentMoves.top();
+		currentMoves.pop();
+		bool prime = false;
+		bool twice = false;
 
-	for (int i = 0; i < SIZE; i++) {
-		vector<char> row;
-		
-		for (int j = 0; j < SIZE; j++) {
-			row.push_back(stickers[face][i][j]);
+		for (int i = 0; i < undoneMove.length(); i++) {
+			if (undoneMove[i] == '\'') {
+				prime = true;
+			}
+
+			if (undoneMove[i] == '2') {
+				twice = true;
+			}
 		}
 
-		colors.push_back(row);
-	}
+		char letter = undoneMove[0];
+		if (!prime && !twice) { // A prime (counterclockwise) move is the opposite of a normal (clockwise) move
+			doMoves(string(1, letter) + "'", false);
+		} else if (twice) {
+			// Remove the double modifier, leaving the rest of the move intact, and perform the opposite move.
+			if (prime) {
+				processMove(letter);
+				undoneMove.erase(2);
+			} else {
+				doMoves(string(1, letter) + "'", false);
+				undoneMove.erase(1);
+			}
 
-	return colors;
+			currentMoves.push(undoneMove);
+		} else { // A prime move is canceled out with a normal move
+			processMove(letter);
+		}
+
+		totalMoves--;
+		cout << "\nUndid " << undoneMove << ".\n";
+	} else {
+		cout << "\nNo current moves to undo.\n";
+	}
+}
+
+bool Cube::operator==(const Cube& rhs) const {
+	return name == rhs.name && scramble == rhs.scramble && moves == rhs.moves &&
+				   currentMoves == rhs.currentMoves && totalMoves == rhs.totalMoves;
+}
+
+void Cube::reset() {
+	createSolved();
+	scramble = "";
+	moves = "";
+	totalMoves = 0;
 }
 
 void Cube::placeFace(const vector<vector<char>>& colors, int face) {
@@ -487,134 +538,166 @@ void Cube::rotateFace(int face) {
 
 void Cube::turnU() {
 	// Rotate the top face.
-	rotateFace(Faces::TOP);
+	rotateFace(TOP);
 
 	// Switch sides of the top face.
-	vector<char> frontSide = getRow(Faces::FRONT, 0);
-	vector<char> rightSide = getRow(Faces::RIGHT, 0);
-	vector<char> backSide = getRow(Faces::BACK, 0);
-	vector<char> leftSide = getRow(Faces::LEFT, 0);
+	vector<char> frontSide = getRow(FRONT, 0);
+	vector<char> rightSide = getRow(RIGHT, 0);
+	vector<char> backSide = getRow(BACK, 0);
+	vector<char> leftSide = getRow(LEFT, 0);
 
-	placeRow(rightSide, Faces::FRONT, 0);
-	placeRow(backSide, Faces::RIGHT, 0);
-	placeRow(leftSide, Faces::BACK, 0);
-	placeRow(frontSide, Faces::LEFT, 0);
+	placeRow(rightSide, FRONT, 0);
+	placeRow(backSide, RIGHT, 0);
+	placeRow(leftSide, BACK, 0);
+	placeRow(frontSide, LEFT, 0);
 }
 
 void Cube::turnL() {
 	// Rotate the left face.
-	rotateFace(Faces::LEFT);
+	rotateFace(LEFT);
 
 	// Switch sides of the left face.
-	vector<char> topSide = getCol(Faces::TOP, 0);
-	vector<char> frontSide = getCol(Faces::FRONT, 0);
-	vector<char> bottomSide = getCol(Faces::BOTTOM, 0);
-	vector<char> backSide = getCol(Faces::BACK, 2);
+	vector<char> topSide = getCol(TOP, 0);
+	vector<char> frontSide = getCol(FRONT, 0);
+	vector<char> bottomSide = getCol(BOTTOM, 0);
+	vector<char> backSide = getCol(BACK, 2);
 
 	// Reverse back segment so it can be properly translated to the top.
 	// Reverse bottom segment so it can be properly translated to the back.
 	reverse(backSide.begin(), backSide.end());
 	reverse(bottomSide.begin(), bottomSide.end());
 
-	placeCol(backSide, Faces::TOP, 0);
-	placeCol(topSide, Faces::FRONT, 0);
-	placeCol(frontSide, Faces::BOTTOM, 0);
-	placeCol(bottomSide, Faces::BACK, 2);
+	placeCol(backSide, TOP, 0);
+	placeCol(topSide, FRONT, 0);
+	placeCol(frontSide, BOTTOM, 0);
+	placeCol(bottomSide, BACK, 2);
 }
 
 void Cube::turnF() {
 	// Rotate the front face.
-	rotateFace(Faces::FRONT);
+	rotateFace(FRONT);
 
 	// Switch sides of the front face.
-	vector<char> topSide = getRow(Faces::TOP, 2);
-	vector<char> rightSide = getCol(Faces::RIGHT, 0);
-	vector<char> bottomSide = getRow(Faces::BOTTOM, 0);
-	vector<char> leftSide = getCol(Faces::LEFT, 2);
+	vector<char> topSide = getRow(TOP, 2);
+	vector<char> rightSide = getCol(RIGHT, 0);
+	vector<char> bottomSide = getRow(BOTTOM, 0);
+	vector<char> leftSide = getCol(LEFT, 2);
 
 	// Reverse left segment so it can be properly translated to the top.
 	// Reverse right segment so it can be properly translated to the bottom.
 	reverse(leftSide.begin(), leftSide.end());
 	reverse(rightSide.begin(), rightSide.end());
 
-	placeRow(leftSide, Faces::TOP, 2);
-	placeCol(topSide, Faces::RIGHT, 0);
-	placeRow(rightSide, Faces::BOTTOM, 0);
-	placeCol(bottomSide, Faces::LEFT, 2);
+	placeRow(leftSide, TOP, 2);
+	placeCol(topSide, RIGHT, 0);
+	placeRow(rightSide, BOTTOM, 0);
+	placeCol(bottomSide, LEFT, 2);
 }
 
 void Cube::turnR() {
 	// Rotate the right face.
-	rotateFace(Faces::RIGHT);
+	rotateFace(RIGHT);
 
 	// Switch sides of the right face.
-	vector<char> topSide = getCol(Faces::TOP, 2);
-	vector<char> frontSide = getCol(Faces::FRONT, 2);
-	vector<char> bottomSide = getCol(Faces::BOTTOM, 2);
-	vector<char> backSide = getCol(Faces::BACK, 0);
+	vector<char> topSide = getCol(TOP, 2);
+	vector<char> frontSide = getCol(FRONT, 2);
+	vector<char> bottomSide = getCol(BOTTOM, 2);
+	vector<char> backSide = getCol(BACK, 0);
 
 	// Reverse top segment so it can be properly translated to the back.
 	// Reverse back segment so it can be properly translated to the bottom.
 	reverse(topSide.begin(), topSide.end());
 	reverse(backSide.begin(), backSide.end());
 
-	placeCol(frontSide, Faces::TOP, 2);
-	placeCol(bottomSide, Faces::FRONT, 2);
-	placeCol(backSide, Faces::BOTTOM, 2);
-	placeCol(topSide, Faces::BACK, 0);
+	placeCol(frontSide, TOP, 2);
+	placeCol(bottomSide, FRONT, 2);
+	placeCol(backSide, BOTTOM, 2);
+	placeCol(topSide, BACK, 0);
 }
 
 void Cube::turnB() {
 	// Rotate the back face.
-	rotateFace(Faces::BACK);
+	rotateFace(BACK);
 
 	// Switch sides of the back face.
-	vector<char> topSide = getRow(Faces::TOP, 0);
-	vector<char> rightSide = getCol(Faces::RIGHT, 2);
-	vector<char> bottomSide = getRow(Faces::BOTTOM, 2);
-	vector<char> leftSide = getCol(Faces::LEFT, 0);
+	vector<char> topSide = getRow(TOP, 0);
+	vector<char> rightSide = getCol(RIGHT, 2);
+	vector<char> bottomSide = getRow(BOTTOM, 2);
+	vector<char> leftSide = getCol(LEFT, 0);
 
 	// Reverse top segment so it can be properly translated to the left.
 	// Reverse bottom segment so it can be properly translated to the right.
 	reverse(topSide.begin(), topSide.end());
 	reverse(bottomSide.begin(), bottomSide.end());
 
-	placeRow(rightSide, Faces::TOP, 0);
-	placeCol(bottomSide, Faces::RIGHT, 2);
-	placeRow(leftSide, Faces::BOTTOM, 2);
-	placeCol(topSide, Faces::LEFT, 0);
+	placeRow(rightSide, TOP, 0);
+	placeCol(bottomSide, RIGHT, 2);
+	placeRow(leftSide, BOTTOM, 2);
+	placeCol(topSide, LEFT, 0);
 }
 
 void Cube::turnD() {
 	// Rotate the bottom face.
-	rotateFace(Faces::BOTTOM);
+	rotateFace(BOTTOM);
 
 	// Switch sides of the bottom face.
-	vector<char> frontSide = getRow(Faces::FRONT, 2);
-	vector<char> rightSide = getRow(Faces::RIGHT, 2);
-	vector<char> backSide = getRow(Faces::BACK, 2);
-	vector<char> leftSide = getRow(Faces::LEFT, 2);
+	vector<char> frontSide = getRow(FRONT, 2);
+	vector<char> rightSide = getRow(RIGHT, 2);
+	vector<char> backSide = getRow(BACK, 2);
+	vector<char> leftSide = getRow(LEFT, 2);
 
-	placeRow(leftSide, Faces::FRONT, 2);
-	placeRow(frontSide, Faces::RIGHT, 2);
-	placeRow(rightSide, Faces::BACK, 2);
-	placeRow(backSide, Faces::LEFT, 2);
+	placeRow(leftSide, FRONT, 2);
+	placeRow(frontSide, RIGHT, 2);
+	placeRow(rightSide, BACK, 2);
+	placeRow(backSide, LEFT, 2);
+}
+
+vector<vector<char>> Cube::getFace(int face) const {
+	vector<vector<char>> colors;
+
+	for (int i = 0; i < SIZE; i++) {
+		vector<char> row;
+		
+		for (int j = 0; j < SIZE; j++) {
+			row.push_back(stickers[face][i][j]);
+		}
+
+		colors.push_back(row);
+	}
+
+	return colors;
+}
+
+vector<vector<char>> Cube::getZFace(int face) const {
+	vector<vector<char>> colors;
+
+	for (int i = 0; i < SIZE; i++) { // Start at the left
+		vector<char> col;
+
+		for (int j = SIZE - 1; j >= 0; j--) { // Start at the bottom
+			col.push_back(stickers[face][j][i]);
+		}
+
+		colors.push_back(col);
+	}
+
+	return colors;
 }
 
 void Cube::rotX() {
 	// Rotate the left face counterclockwise.
-	rotateFace(Faces::LEFT);
-	rotateFace(Faces::LEFT);
-	rotateFace(Faces::LEFT);
+	rotateFace(LEFT);
+	rotateFace(LEFT);
+	rotateFace(LEFT);
 
 	// Rotate the right face clockwise.
-	rotateFace(Faces::RIGHT);
+	rotateFace(RIGHT);
 
 	// Switch the middle faces.
-	vector<vector<char>> frontFace = getFace(Faces::FRONT);
-	vector<vector<char>> bottomFace = getFace(Faces::BOTTOM);
-	vector<vector<char>> backFace = getFace(Faces::BACK);
-	vector<vector<char>> topFace = getFace(Faces::TOP);
+	vector<vector<char>> frontFace = getFace(FRONT);
+	vector<vector<char>> bottomFace = getFace(BOTTOM);
+	vector<vector<char>> backFace = getFace(BACK);
+	vector<vector<char>> topFace = getFace(TOP);
 
 	// Reverse the back and top faces to properly translate them
 	// from the back and to the top respectively (reverse their rows and vertical orders).
@@ -631,83 +714,50 @@ void Cube::rotX() {
 	topFace[2] = topFace[0];
 	topFace[0] = topFaceBottom;
 
-	placeFace(frontFace, Faces::TOP);
-	placeFace(bottomFace, Faces::FRONT);
-	placeFace(backFace, Faces::BOTTOM);
-	placeFace(topFace, Faces::BACK);
+	placeFace(frontFace, TOP);
+	placeFace(bottomFace, FRONT);
+	placeFace(backFace, BOTTOM);
+	placeFace(topFace, BACK);
 }
 
 void Cube::rotY() {
 	// Rotate the top face clockwise.
-	rotateFace(Faces::TOP);
+	rotateFace(TOP);
 
 	// Rotate the bottom face counterclockwise.
-	rotateFace(Faces::BOTTOM);
-	rotateFace(Faces::BOTTOM);
-	rotateFace(Faces::BOTTOM);
+	rotateFace(BOTTOM);
+	rotateFace(BOTTOM);
+	rotateFace(BOTTOM);
 
 	// Switch the middle faces.
-	vector<vector<char>> frontFace = getFace(Faces::FRONT);
-	vector<vector<char>> rightFace = getFace(Faces::RIGHT);
-	vector<vector<char>> backFace = getFace(Faces::BACK);
-	vector<vector<char>> leftFace = getFace(Faces::LEFT);
+	vector<vector<char>> frontFace = getFace(FRONT);
+	vector<vector<char>> rightFace = getFace(RIGHT);
+	vector<vector<char>> backFace = getFace(BACK);
+	vector<vector<char>> leftFace = getFace(LEFT);
 
-	placeFace(frontFace, Faces::LEFT);
-	placeFace(rightFace, Faces::FRONT);
-	placeFace(backFace, Faces::RIGHT);
-	placeFace(leftFace, Faces::BACK);
+	placeFace(frontFace, LEFT);
+	placeFace(rightFace, FRONT);
+	placeFace(backFace, RIGHT);
+	placeFace(leftFace, BACK);
 }
 
-void Cube::undo() {
-	if (currentMoves.size() > 0) {
-		string undoneMove = currentMoves.top();
-		currentMoves.pop();
-		bool prime = false;
-		bool twice = false;
+void Cube::rotZ() {
+	// Rotate the front face clockwise.
+	rotateFace(FRONT);
 
-		for (int i = 0; i < undoneMove.length(); i++) {
-			if (undoneMove[i] == '\'') {
-				prime = true;
-			}
+	// Rotate the back face counterclockwise.
+	rotateFace(BACK);
+	rotateFace(BACK);
+	rotateFace(BACK);
 
-			if (undoneMove[i] == '2') {
-				twice = true;
-			}
-		}
+	// Switch the middle faces.
+	vector<vector<char>> topFace = getZFace(TOP);
+	vector<vector<char>> leftFace = getZFace(LEFT);
+	vector<vector<char>> bottomFace = getZFace(BOTTOM);
+	vector<vector<char>> rightFace = getZFace(RIGHT);
 
-		char letter = undoneMove[0];
-		if (!prime && !twice) { // A prime (counterclockwise) move is the opposite of a normal (clockwise) move
-			doMoves(string(1, letter) + "'", false);
-		} else if (twice) {
-			// Remove the double modifier, leaving the rest of the move intact, and perform the opposite move.
-			if (prime) {
-				processMove(letter);
-				undoneMove.erase(2);
-			} else {
-				doMoves(string(1, letter) + "'", false);
-				undoneMove.erase(1);
-			}
-
-			currentMoves.push(undoneMove);
-		} else { // A prime move is canceled out with a normal move
-			processMove(letter);
-		}
-
-		totalMoves--;
-		cout << "\nUndid " << undoneMove << ".\n";
-	} else {
-		cout << "\nNo current moves to undo.\n";
-	}
-}
-
-bool Cube::operator==(const Cube& rhs) const {
-	return name == rhs.name && scramble == rhs.scramble && moves == rhs.moves &&
-				   currentMoves == rhs.currentMoves && totalMoves == rhs.totalMoves;
-}
-
-void Cube::reset() {
-	createSolved();
-	scramble = "";
-	moves = "";
-	totalMoves = 0;
+	placeFace(topFace, RIGHT);
+	placeFace(leftFace, TOP);
+	placeFace(bottomFace, LEFT);
+	placeFace(rightFace, BOTTOM);
 }

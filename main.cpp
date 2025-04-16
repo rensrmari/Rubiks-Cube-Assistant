@@ -11,11 +11,11 @@
 #include <limits>
 using namespace std;
 
-void handleNewCube(Cube& cube, FileHandler& fh, bool randomized, bool& original, bool& usingCube);
+void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& original, bool& usingCube);
 void applyRandomScramble(Cube& cube, string& scramble);
 void applyManualScramble(Cube& cube, string& scramble);
-void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube);
-void useCube(Cube& cube, FileHandler& fh, bool newCube);
+void handleLoadCube(Cube& cube, FileHandler& handler, bool& original, bool& usingCube);
+void useCube(Cube& cube, FileHandler& handler, bool newCube);
 
 char getCharacterInput();
 void switchMenu(bool& original, bool& updated);
@@ -41,7 +41,7 @@ int main() {
     bool isGuide = false;
     bool usingCube = false;
     
-    FileHandler fh;
+    FileHandler handler;
     Cube currentCube;
     bool createdNewCube = false;
     char userInput;
@@ -68,9 +68,9 @@ int main() {
             userInput = getCharacterInput();
 
             if (userInput == NEW_CUBE_RANDOM_CHAR) {
-                handleNewCube(currentCube, fh, true, isNewCube, usingCube);
+                handleNewCube(currentCube, handler, true, isNewCube, usingCube);
             } else if (userInput == NEW_CUBE_MANUAL_CHAR) {
-                handleNewCube(currentCube, fh, false, isNewCube, usingCube);
+                handleNewCube(currentCube, handler, false, isNewCube, usingCube);
             }
 
             createdNewCube = true;
@@ -81,7 +81,7 @@ int main() {
             }
         } else if (isLoadCube) { // Display load cube menu, providing user with options
             displayLoadCube();
-            handleLoadCube(currentCube, fh, isLoadCube, usingCube);
+            handleLoadCube(currentCube, handler, isLoadCube, usingCube);
             
             if (!usingCube) {
                 switchMenu(isLoadCube, isTitle);
@@ -92,7 +92,7 @@ int main() {
             
             switchMenu(isGuide, isTitle);
         } else { // The user is using the Rubik's cube
-            useCube(currentCube, fh, createdNewCube);
+            useCube(currentCube, handler, createdNewCube);
             switchMenu(usingCube, isTitle);
             createdNewCube = false;
         }
@@ -114,30 +114,30 @@ char getCharacterInput() {
 /**
  * Sets the cube being used to either a randomized scramble or a manual one.
  * @param cube The Cube in use that will be updated.
- * @param fh The FileHandler to update.
+ * @param handler The FileHandler to update.
  * @param randomized Whether or not the Cube will be scrambled randomly.
  * @param original The original menu.
  * @param usingCube Whether or not the Cube is in use.
  */
-void handleNewCube(Cube& cube, FileHandler& fh, bool randomized, bool& original, bool& usingCube) {
+void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& original, bool& usingCube) {
     // Prompt user for the name of a valid file (empty or CSV-compliant).
     // If no such file exists, user will be prompted to make a new file.
     // Otherwise, the process will stop and nothing will update.
     cout << "\nPlease enter the name of a valid or empty file to use: ";
     string fileName;
     getline(cin, fileName);
-    fh.setFileName(fileName);
+    handler.setFileName(fileName);
 
     // First check if provided file is empty or valid.
     bool fileSuccess = false;
-    int fileStatus = fh.checkValidFile(true);
+    int fileStatus = handler.checkValidFile(true);
 
     if (fileStatus == FileHandler::VALID_STATUS::VALID) {
         cout << "\nYou are now using \"" << fileName << "\".\n";
         fileSuccess = true;
     } else {
         cout << "\nError: Could not open \"" << fileName << "\".\n";
-        fh.reset();
+        handler.reset();
         return;
     }
     
@@ -151,7 +151,7 @@ void handleNewCube(Cube& cube, FileHandler& fh, bool randomized, bool& original,
 
     // Add a name to the new cube.
     // If the file is a valid non-empty file, duplicate names must be checked.
-    fh.processValidFile();
+    handler.processValidFile();
     string name;
     bool validName = false;
 
@@ -159,7 +159,7 @@ void handleNewCube(Cube& cube, FileHandler& fh, bool randomized, bool& original,
         cout << "Please enter a unique name for this cube: ";
         getline(cin, name);
 
-        if (!fh.checkTaken(name)) {
+        if (!handler.checkTaken(name)) {
             validName = true;
         }
 
@@ -256,23 +256,23 @@ void applyManualScramble(Cube& cube, string& scramble) {
 /**
  * Sets the current Cube to a pre-existing one, if it exists in a given valid file.
  * @param cube The Cube in use that will be updated.
- * @param fh The FileHandler to update.
+ * @param handler The FileHandler to update.
  * @param original The original menu.
  * @param usingCube Whether or not the Cube is in use.
  */
-void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube) {
+void handleLoadCube(Cube& cube, FileHandler& handler, bool& original, bool& usingCube) {
     // Prompt user for the name of a valid file of CSV.
     // The process will stop if the file invalid, outputting why is it not valid.
     // Otherwise, the user will be prompted for the name of a Cube to load.
     cout << "\nPlease enter a valid file: ";
     string fileName;
     getline(cin, fileName);
-    fh.setFileName(fileName);
+    handler.setFileName(fileName);
 
-    int fileStatus = fh.checkValidFile(false);
-    if (fileStatus == FileHandler::VALID_STATUS::VALID && fh.processValidFile()) {
+    int fileStatus = handler.checkValidFile(false);
+    if (fileStatus == FileHandler::VALID_STATUS::VALID && handler.processValidFile()) {
         cout << "\nSuccessfully loaded \"" << fileName << "\".\n";
-        fh.displaySavedCubes();
+        handler.displaySavedCubes();
 
         // Prompt a name from the file.
         string requestedName;
@@ -281,7 +281,7 @@ void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube
             cout << "Please enter the name of your cube: ";
             getline(cin, requestedName);
 
-            if (fh.loadCube(cube, requestedName)) {
+            if (handler.loadCube(cube, requestedName)) {
                 validName = true;
             }
 
@@ -293,8 +293,8 @@ void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube
         // Update cube information and begin using the cube.
         switchMenu(original, usingCube);
     } else {
-        fh.displayError(fileStatus);
-        fh.reset();
+        handler.displayError(fileStatus);
+        handler.reset();
     }
 }
 
@@ -302,10 +302,10 @@ void handleLoadCube(Cube& cube, FileHandler& fh, bool& original, bool& usingCube
  * Handles the logic of using the Cube.
  * Allows the user to interact with the Cube and assistant as well as save and exit.
  * @param cube The Cube to interact with.
- * @param fh The FileHandler to handle the saving of the Cube.
+ * @param handler The FileHandler to handle the saving of the Cube.
  * @param newCube Whether or not the cube is new.
  */
-void useCube(Cube& cube, FileHandler& fh, bool newCube) {
+void useCube(Cube& cube, FileHandler& handler, bool newCube) {
     const string EXIT_COMMAND = "EXIT";
     const string SAVE_COMMAND = "SAVE";
     const string UNDO_COMMAND = "UNDO";
@@ -340,14 +340,14 @@ void useCube(Cube& cube, FileHandler& fh, bool newCube) {
                 char userResponse = getCharacterInput();
 
                 if (userResponse == 'Y') {
-                    fh.saveCubeToFile(cube);
+                    handler.saveCubeToFile(cube);
                 }
             }
 
             cout << "\nYou have finished using " << cube.getName() << "'s cube.\n";
             break;
         } else if (userInput == SAVE_COMMAND) {
-            fh.saveCubeToFile(cube);
+            handler.saveCubeToFile(cube);
             recentlySaved = true;
             invalidInput = false;
         } else if (userInput == UNDO_COMMAND) {
@@ -355,11 +355,11 @@ void useCube(Cube& cube, FileHandler& fh, bool newCube) {
             invalidInput = false;
         } else if (userInput == HINT_COMMAND) {
             // TODO: hint
-
+            
             invalidInput = false;
         } else if (userInput == SOLVE_COMMAND) {
             // TODO: solve
-
+            assistant.solve();
             recentlySaved = false;
             invalidInput = false;
         } else {
@@ -369,7 +369,7 @@ void useCube(Cube& cube, FileHandler& fh, bool newCube) {
     }
 
     cube.reset();
-    fh.reset();
+    handler.reset();
 }
 
 /** Switches the menu that the user is seeing.
@@ -420,7 +420,7 @@ void displayGuide() {
 
     cout << "To start interacting with your Rubik's cube, either create a new cube or load in a pre-existing one.\n"
          << "New Cube: You can scramble the new cube randomly or manually. You must provide a unique name for the\n"
-         << "\tcube to ensure that you can come back to it later. The provided file can be empty.\n"
+         << "\tcube to ensure that you can come back to it later. The provided file may be empty.\n"
          << "Load Cube: Alternatively, you can use a cube that has already been set up. Simply provide the file\n"
          << "\tname to be processed. The data within this file must have comma-separated values containing\n"
          << "\ta unique name, correctly formatted original scramble, the moves applied, and the total moves.\n"
@@ -431,6 +431,6 @@ void displayGuide() {
          << "commands. You will also have a flattened display of the cube. Additionally, your name, the original\n"
          << "scramble, total moves, and current moves will be displayed.\n\n";
     
-    cout << "Note: The color orange (O) has been replaced with magenta.\n\n"
+    cout << "Note: The color orange (O) has been replaced with magenta for increased color compatibility.\n\n"
          << "Enter anything to go back: ";
 }

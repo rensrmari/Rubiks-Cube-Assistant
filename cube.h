@@ -16,20 +16,67 @@
 #define BLACK_FG "\033[30m"
 #define RESET "\033[0m"
 
+#include "sticker_data.h"
 #include <string>
 #include <stack>
 #include <map>
 #include <set>
 #include <vector>
+#include <utility>
 using namespace std;
 
 class Cube {
 public:
-    friend class Assistant;
     enum Faces { TOP, LEFT, FRONT, RIGHT, BACK, BOTTOM };
     static const set<char> VALID_MOVES;
     static const map<char, string> COLOR_STRINGS;
     static const map<int, string> FACE_STRINGS;
+    static const int NUM_FACES = 6;
+    
+    /**
+     * Creates a string representing the given data.
+     * @param map The map to use.
+     * @param keys The keys to use.
+     * @return A string with the given data.
+     */
+    template <typename T1, typename T2>
+    static string getData(const map<T1, T2>& map, const vector<T1>& keys) {
+        string res = "";
+
+        for (int i = 0; i < keys.size(); i++) {
+            T1 key = keys.at(i);
+
+            if (map.count(key) != 0) {
+                res += map.at(key) + (i < keys.size() - 1 ? "-" : ""); // Use hyphens to separate words
+            } else {
+                break;
+            }
+        }
+
+        return res;
+    }
+
+	/**
+	 * Returns a string representing the given colors.
+	 * @param colors The colors to represent.
+	 * @return A string with the given colors.
+	 */
+	static string getColors(const vector<char>& colors);
+
+	/**
+	 * Returns a string representing the given faces.
+	 * @param faces The faces to represent.
+	 * @return A string with the given faces.
+	 */
+	static string getFaces(const vector<int>& faces);
+
+	/**
+	 * Checks if a pair of colors are equal to another pair of colors.
+	 * @param colors1 One pair of colors.
+	 * @param colors2 Another pair of colors.
+	 * @return Whether or not the stickers match.
+	 */
+	static bool checkColors(const pair<char, char>& colors1, const pair<char, char>& colors2);
 
     /**
       * Checks whether the set of moves is valid (i.e. no unpaired numbers or apostrophes, only valid letters)
@@ -65,6 +112,71 @@ public:
      * @param totalMoves The total number of moves.
      */
     Cube(const string& name, const string& scramble, const string& moves, int totalMoves);
+
+    /**
+     * Gets the colors at a specified location.
+     * @param face The index of the face to check.
+     * @param row The row to check.
+     * @param col The column to check.
+     * @return A color at the location.
+     */
+    char getAt(int face, int row, int col) const;
+    
+    /**
+     * Locates a face that contains a specified center color.
+     * @param color The character representing the desired color.
+     * @return The index of the face containing the color.
+     */
+    int findCenter(char color) const;
+    
+	/**
+	 * Locates an edge based on two colors, returning its StickerData.
+	 * @param color1 The first color.
+	 * @param color2 The second color.
+	 * @return StickerData of the found edge.
+	 */
+	StickerData findEdge(char color1, char color2) const;
+
+    /**
+     * Gets the data of the adjacent edge of a given edge.
+     * @param face The index of the face of the given edge.
+     * @param row The row of the given edge.
+     * @param col The column of the given edge.
+     * @return StickerData containing the data of the adjacent edge.
+     */
+    StickerData getAdjEdge(int face, int row, int col) const;
+
+	/**
+	 * Locates a corner with the given criteria.
+	 * @param baseColor The base color of the sticker.
+	 * @param adjColors The adjacent colors of the sticker.
+	 * @return A pair containing StickerData and a pair of StickerData, representing the base sticker and adjacent stickers respectively.
+	 */
+	pair<StickerData, pair<StickerData, StickerData>> findCorner(char baseColor, const pair<char, char>& adjColors) const;
+    
+    /**
+     * Gets the data of stickers adjacent to a given corner sticker.
+     * @param face The index of the face to check.
+     * @param row The row of the sticker.
+     * @param col The column of the sticker.
+     * @return A pair containing the data of two adjacent edges to a corner.
+     */
+    pair<StickerData, StickerData> getAdjCorners(int face, int row, int col) const;
+
+    /**
+     * Gets the two side-facing (not top or bottom) sides of a corner.
+     * @param corner A vector of StickerData of a corner.
+     * @return A pair of indices whose elements face to the sides.
+     */
+    pair<int, int> getSideCorners(const vector<StickerData>& corner) const;
+
+	/**
+	 * Checks if an edge is in its correct spot.
+	 * @param baseColor The base color.
+	 * @param colors The colors adjacent to the base color.
+	 * @return Whether or not the corner is in its correct spot.
+	 */
+	bool checkCornerPosition(char baseColor, const pair<char, char>& colors) const;
 
     /**
      * Gets the name of the Cube.
@@ -139,7 +251,6 @@ public:
     bool operator==(const Cube& rhs) const;
 private:
     static const map<int, char> FACE_COLORS;
-    static const int NUM_FACES = 6;
     static const int SIZE = 3;
 
     /**

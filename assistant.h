@@ -4,6 +4,9 @@
 #include "cube.h"
 #include "sticker_data.h"
 #include <string>
+#include <vector>
+#include <map>
+#include <utility>
 using namespace std;
 
 class Assistant {
@@ -26,11 +29,6 @@ public:
 	 */
 	void printHint() const;
 private:
-	/**
-	 * Returns the next move.
-	 */
-	string getNextMove();
-
 	/**
 	 * Processes a sequence and displays the result.
 	 * @param sequence The sequence to process.
@@ -55,55 +53,62 @@ private:
 	string rotateToFace(int face, int newFace, bool onlyYMoves) const;
 
 	/**
+	 * Picks an outward facing sticker to use, meaning it must not be facing the top or bottom.
+	 * @param stickers The stickers to consider.
+	 * @return The StickerData whose face is not top or bottom.
+	 */
+	StickerData pickOutward(const vector<StickerData>& stickers) const;
+
+	/**
+	 * Turns an edge to the bottom and updates its coordinates.
+	 * @param row The row of the edge.
+	 * @param col The column of the edge.
+	 * @return A string containing a sequence that will result in an edge in the bottom of the front face.
+	 */
+	string turnEdgeToBottom(int& row, int& col) const;
+
+	/**
 	 * Returns a sequence that will result in a edge in a given face, assuming it is the top or bottom on the front face.
-	 * @param face The face the sticker is on.
+	 * @param face The face the sticker is on, which will be updated.
 	 * @param newFace The face to position the sticker on.
 	 * @param row The row of the sticker.
 	 * @param col The column of the sticker.
 	 * @param isOnTop Whether or not the sticker is on the top.
 	 * @return A string containing a sequence that will result in the edge being in the given face.
 	 */
-	string turnEdgeToFace(int face, int newFace, int row, int col, bool isOnTop) const;
+	string turnEdgeToFace(int& face, int newFace, int row, int col, bool isOnTop) const;
 
 	/**
-	 * Gets the data of the adjacent edge of a given edge.
-	 * @param cube The cube to check.
-	 * @param face The index of the face of the given edge.
-	 * @param row The row of the given edge.
-	 * @param col The column of the given edge.
-	 * @return StickerData containing the data of the adjacent edge.
+	 * Turns a corner to the bottom and updates its coordinates.
+	 * @param row The row of the corner.
+	 * @param col The column of the corner.
+	 * @return A string containing a sequence that will reuslt in the corner in the bottom.
 	 */
-	StickerData getAdjEdge(const Cube& cube, int face, int row, int col) const;
-
-    /**
-     * Locates a face that contains a specified center color.
-     * @param color The character representing the desired color.
-     * @return The index of the face containing the color.
-     */
-    int findCenter(char color) const;
+	string turnCornerToBottom(int& row, int& col) const;
 
 	/**
-	 * Locates an edge based on two colors, returning its StickerData.
-	 * @param color1 The first color.
-	 * @param color2 The second color.
-	 * @return StickerData of the found edge.
+	 * Turns a corner to the given pair of faces.
+	 * @param baseColor The base color.
+	 * @param colors The colors adjacent to the base color.
+	 * @param face The original face of the corner, which will be updated.
+	 * @param isOnTop Whether or not the corner is on top.
+	 * @return A string containing the sequence that will result in the corner being correctly positioned.
 	 */
-	StickerData findEdge(char color1, char color2) const;
+	string turnCornerToFaces(char baseColor, const pair<char, char>& colors, int& face, bool isOnTop) const;
 
 	/**
-	 * Returns a sequence that will result in an edge on the bottom during the white cross process, assuming it is in front.
-	 * @param row The row of the edge.
-	 * @param col The column of the edge.
-	 * @return A string containing a sequence that will result in an edge in the bottom of the front face.
+	 * Gets a side color of a corner.
+	 * @param color The color to use and disregard later.
+	 * @param adjColors The adjacent colors of the corner.
+	 * @return A color of the corner facing the side that is not the specified color.
 	 */
-	string turnEdgeToBottom(int row, int col) const;
+	char getSideColor(char color, const pair<char, char>& adjColors) const;
 
 	/**
-	 * Corrects the face if there were y rotations.
-	 * @param face The original face.
-	 * @param rotations The rotations that were applied.
+	 * Prints a message indicating that a process has completed.
+	 * @param message The message to print.
 	 */
-	void fixFace(int& face, const string& rotations) const;
+	void printComplete(const string& message) const;
 
 	/**
 	 * Checks the current stage of the solve.
@@ -136,6 +141,15 @@ private:
 	 * @return True if they have been completed.
 	 */
 	bool checkWhiteCorners() const;
+
+	/**
+	 * Checks if a corner of the white corners is in its correct spot and correctly oriented.
+	 * @param face The index of the face to check.
+	 * @param row The row to check.
+	 * @param col The column to check.
+	 * @return Whether or not the corner is in its correct spot.
+	 */
+	bool checkWhiteCorner(int face, int row, int col) const;
 
 	/**
 	 * Attempts to achieve white corners on the Cube.

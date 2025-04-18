@@ -358,7 +358,6 @@ void useCube(Cube& cube, FileHandler& handler, bool newCube) {
             
             invalidInput = false;
         } else if (userInput == SOLVE_COMMAND) {
-            // TODO: solve
             assistant.solve();
             recentlySaved = false;
             invalidInput = false;

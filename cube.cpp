@@ -1,11 +1,16 @@
 #include "cube.h"
+#include "sticker_data.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <string>
-#include <set>
 #include <cctype>
 #include <algorithm>
+#include <string>
+#include <stack>
+#include <map>
+#include <set>
+#include <vector>
+#include <utility>
 using namespace std;
 
 const set<char> Cube::VALID_MOVES = { 'U', 'L', 'F', 'R', 'B', 'D', 'x', 'y', 'z' };
@@ -33,6 +38,35 @@ const map<int, char> Cube::FACE_COLORS = {
 	{ BACK, 'B' },
 	{ BOTTOM, 'Y' }
 };
+
+string Cube::getColors(const vector<char>& colors) {
+    return Cube::getData(Cube::COLOR_STRINGS, colors);
+}
+
+string Cube::getFaces(const vector<int>& faces) {
+    return Cube::getData(Cube::FACE_STRINGS, faces);
+}
+
+bool Cube::checkColors(const pair<char, char>& colors1, const pair<char, char>& colors2) {
+    int numMatches = 0;
+
+    vector<char> testColors1 = { colors1.first, colors1.second };
+    vector<char> testColors2 = { colors2.first, colors2.second };
+
+    for (char color : testColors1) {
+        for (char sticker : testColors2) {
+            if (color == sticker) {
+                numMatches++;
+            }
+        }
+    }
+
+    if (numMatches < testColors1.size()) {
+        return false;
+    }
+    
+    return true;
+}
 
 bool Cube::checkMoves(const string& moves) {
 	istringstream iss(moves);
@@ -131,6 +165,342 @@ Cube::Cube(const string& name, const string& scramble, const string& moves, int 
 	createSolved();
 	doMoves(scramble, false);
 	doMoves(moves, false);
+}
+
+char Cube::getAt(int face, int row, int col) const {
+	if ((face >= 0 && face < NUM_FACES)
+	&& (row >= 0 && row < SIZE)
+	&& (col >= 0 && col < SIZE)) {
+		return stickers[face][row][col];
+	}
+
+	return '\0';
+}
+
+int Cube::findCenter(char color) const {
+	for (int i = 0; i < NUM_FACES; i++) {
+		if (stickers[i][1][1] == color) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+StickerData Cube::findEdge(char color1, char color2) const {
+    StickerData res = { -1, '\0', -1, -1};
+
+    vector<pair<int, int>> coords = { // Store row and columns that need to be checked
+        {0, 1},
+        {1, 0},
+        {1, 2},
+        {2, 1}
+    };
+    
+    // Check each face and each edge.
+    for (int i = 0; i < Cube::NUM_FACES; i++) {
+        for (int j = 0; j < coords.size(); j++) {
+            pair<int, int> coord = coords[j];
+            char edge = stickers[i][coord.first][coord.second];
+            char adjEdge = getAdjEdge(i, coord.first, coord.second).color;
+            
+            if (checkColors({ edge, adjEdge }, { color1, color2 })) {
+                res.face = i;
+                res.color = edge;
+                res.row = coord.first;
+                res.col = coord.second;
+                return res;
+            }
+        }
+    }
+
+    return res;
+}
+
+StickerData Cube::getAdjEdge(int face, int row, int col) const {
+    StickerData res;
+
+    if (face == TOP) {
+        res.row = 0;
+        res.col = 1;
+
+        if (row == 0 && col == 1) { // Top edge -> top of back face
+            res.face = BACK;
+        } else if (row == 1 && col == 0) { // Left edge -> top of left face
+            res.face = LEFT;
+        } else if (row == 1 && col == 2) { // Right edge -> top of right face
+            res.face = RIGHT;
+        } else { // Bottom edge -> top of front face
+            res.face = FRONT;
+        }
+    } else if (face == LEFT) {
+        if (row == 0 && col == 1) { // Top edge -> left of top face
+            res.face = TOP;
+            res.row = 1;
+            res.col = 0;
+        } else if (row == 1 && col == 0) { // Left edge -> right of back face
+            res.face = BACK;
+            res.row = 1;
+            res.col = 2;
+        } else if (row == 1 && col == 2) { // Right edge -> left of front face
+            res.face = FRONT;
+            res.row = 1;
+            res.col = 0;
+        } else { // Bottom edge -> left of bottom face
+            res.face = BOTTOM;
+            res.row = 1;
+            res.col = 0;
+        }
+    } else if (face == FRONT) {
+        if (row == 0 && col == 1) { // Top edge -> bottom of the top face
+            res.face = TOP;
+            res.row = 2;
+            res.col = 1;
+        } else if (row == 1 && col == 0) { // Left edge -> right of left face
+            res.face = LEFT;
+            res.row = 1;
+            res.col = 2;
+        } else if (row == 1 && col == 2) { // Right edge -> left of right face
+            res.face = RIGHT;
+            res.row = 1;
+            res.col = 0;
+        } else { // Bottom edge -> top of bottom face
+            res.face = BOTTOM;
+            res.row = 0;
+            res.col = 1;
+        }
+    } else if (face == RIGHT) {
+        if (row == 0 && col == 1) { // Top edge -> right of top face
+            res.face = TOP;
+            res.row = 1;
+            res.col = 2;
+        } else if (row == 1 && col == 0) { // Left edge -> right of front face
+            res.face = FRONT;
+            res.row = 1;
+            res.col = 2;
+        } else if (row == 1 && col == 2) { // Right edge -> left of back face
+            res.face = BACK;
+            res.row = 1;
+            res.col = 0;
+        } else { // Bottom edge -> right of bottom face
+            res.face = BOTTOM;
+            res.row = 1;
+            res.col = 2;
+        }
+    } else if (face == BACK) {
+        if (row == 0 && col == 1) { // Top edge -> top of top face
+            res.face = TOP;
+            res.row = 0;
+            res.col = 1;
+        } else if (row == 1 && col == 0) { // Left edge -> right of right face
+            res.face = RIGHT;
+            res.row = 1;
+            res.col = 2;
+        } else if (row == 1 && col == 2) { // Right edge -> left of left face
+            res.face = LEFT;
+            res.row = 1;
+            res.col = 0;
+        } else { // Bottom edge -> bottom of bottom face
+            res.face = BOTTOM;
+            res.row = 2;
+            res.col = 1;
+        }
+    } else if (face == BOTTOM) {
+        res.row = 2;
+        res.col = 1;
+
+        if (row == 0 && col == 1) { // Top edge -> bottom of front face
+            res.face = FRONT;
+        } else if (row == 1 && col == 0) { // Left edge -> bottom of left face
+            res.face = LEFT;
+        } else if (row == 1 && col == 2) { // Right edge -> bottom of right face
+            res.face = RIGHT;
+        } else { // Bottom edge -> bottom of back face
+            res.face = BACK;
+        }
+    } else {
+		res.face = -1;
+		res.row = -1;
+		res.col = -1;
+	}
+
+    res.color = stickers[res.face][res.row][res.col];
+    return res;
+}
+
+pair<StickerData, pair<StickerData, StickerData>> Cube::findCorner(char baseColor, const pair<char, char>& adjColors) const {
+    pair<StickerData, pair<StickerData, StickerData>> res = {
+		{-1, '\0', -1, -1},
+		{ {-1, '\0', -1, -1 }, { -1, '\0', -1, -1 } }
+	};
+    
+    // Store row and columns that need to be checked.
+    vector<pair<int, int>> coords = {
+        {0, 0},
+        {0, 2},
+        {2, 0},
+        {2, 2}
+    };
+
+    // Check each face and its corners.
+    for (int i = 0; i < Cube::NUM_FACES; i++) {
+        for (int j = 0; j < coords.size(); j++) {
+            pair<int, int> coord = coords[j];
+            char color = stickers[i][coord.first][coord.second];
+            pair<StickerData, StickerData> adjCorners = getAdjCorners(i, coord.first, coord.second);
+            char color1 = adjCorners.first.color;
+            char color2 = adjCorners.second.color;
+
+            if (color == baseColor && checkColors(adjColors, { color1, color2 })) {
+                res.first.color = color;
+                res.first.face = i;
+                res.first.row = coord.first;
+                res.first.col = coord.second;
+				res.second = adjCorners;
+                return res;
+            }
+        }
+    }
+
+    return res;
+}
+
+pair<StickerData, StickerData> Cube::getAdjCorners(int face, int row, int col) const {
+    pair<StickerData, StickerData> res;
+
+    if (face == TOP) {
+        if (row == 0 && col == 0) { // Top left corner
+            res.first = { LEFT, stickers[LEFT][0][0], 0, 0 };
+            res.second = { BACK, stickers[BACK][0][2], 0, 2 };
+        } else if (row == 0 && col == 2) { // Top right corner
+            res.first = { RIGHT, stickers[RIGHT][0][2], 0, 2 };
+            res.second = { BACK, stickers[BACK][0][0], 0, 0 };
+        } else if (row == 2 && col == 0) { // Bottom left corner
+            res.first = { LEFT, stickers[LEFT][0][2], 0, 2 };
+            res.second = { FRONT, stickers[FRONT][0][0], 0, 0 };
+        } else { // Bottom right corner
+            res.first = { RIGHT, stickers[RIGHT][0][0], 0, 0 };
+            res.second = { FRONT, stickers[FRONT][0][2], 0, 2 };
+        }
+    } else if (face == LEFT) {
+        if (row == 0 && col == 0) { // Top left corner
+            res.first = { TOP, stickers[TOP][0][0], 0, 0 };
+            res.second = { BACK, stickers[BACK][0][2], 0, 2 };
+        } else if (row == 0 && col == 2) { // Top right corner
+            res.first = { TOP, stickers[TOP][2][0], 2, 0 };
+            res.second = { FRONT, stickers[FRONT][0][0], 0, 0 };
+        } else if (row == 2 && col == 0) { // Bottom left corner
+            res.first = { BOTTOM, stickers[BOTTOM][2][0], 2, 0 };
+            res.second = { BACK, stickers[BACK][2][2], 2, 2 };
+        } else { // Bottom right corner
+            res.first = { BOTTOM, stickers[BOTTOM][0][0], 0, 0 };
+            res.second = { FRONT, stickers[FRONT][2][0], 2, 0 };
+        }
+    } else if (face == FRONT) {
+        if (row == 0 && col == 0) { // Top left corner
+            res.first = { TOP, stickers[TOP][2][0], 2, 0 };
+            res.second = { LEFT, stickers[LEFT][0][2], 0, 2 };
+        } else if (row == 0 && col == 2) { // Top right corner
+            res.first = { TOP, stickers[TOP][2][2], 2, 2 };
+            res.second = { RIGHT, stickers[RIGHT][0][0], 0, 0 };
+        } else if (row == 2 && col == 0) { // Bottom left corner
+            res.first = { BOTTOM, stickers[BOTTOM][0][0], 0, 0 };
+            res.second = { LEFT, stickers[LEFT][2][2], 2, 2 };
+        } else { // Bottom right corner
+            res.first = { BOTTOM, stickers[BOTTOM][0][2], 0, 2 };
+            res.second = { RIGHT, stickers[RIGHT][2][0], 2, 0 };
+        }
+    } else if (face == RIGHT) {
+        if (row == 0 && col == 0) { // Top left corner
+            res.first = { TOP, stickers[TOP][2][2], 2, 2 };
+            res.second = { FRONT, stickers[FRONT][0][2], 0, 2 };
+        } else if (row == 0 && col == 2) { // Top right corner
+            res.first = { TOP, stickers[TOP][0][2], 0, 2 };
+            res.second = { BACK, stickers[BACK][0][0], 0, 0 };
+        } else if (row == 2 && col == 0) { // Bottom left corner
+            res.first = { BOTTOM, stickers[BOTTOM][0][2], 0, 2 };
+            res.second = { FRONT, stickers[FRONT][2][2], 2, 2 };
+        } else { // Bottom right corner
+            res.first = { BOTTOM, stickers[BOTTOM][2][2], 2, 2 };
+            res.second = { BACK, stickers[BACK][2][0], 2, 0 };
+        }
+    } else if (face == BACK) {
+        if (row == 0 && col == 0) { // Top left corner
+            res.first = { TOP, stickers[TOP][0][2], 0, 2 };
+            res.second = { RIGHT, stickers[RIGHT][0][2], 0, 2 };
+        } else if (row == 0 && col == 2) { // Top right corner
+            res.first = { TOP, stickers[TOP][0][0], 0, 0 };
+            res.second = { LEFT, stickers[LEFT][0][0], 0, 0 };
+        } else if (row == 2 && col == 0) { // Bottom left corner
+            res.first = { BOTTOM, stickers[BOTTOM][2][2], 2, 2 };
+            res.second = { RIGHT, stickers[RIGHT][2][2], 2, 2 };
+        } else { // Bottom right corner
+            res.first = { BOTTOM, stickers[BOTTOM][2][0], 2, 0 };
+            res.second = { LEFT, stickers[LEFT][2][0], 2, 0 };
+        }
+    } else if (face == BOTTOM) {
+        if (row == 0 && col == 0) { // Top left corner
+            res.first = { FRONT, stickers[FRONT][2][0], 2, 0 };
+            res.second = { LEFT, stickers[LEFT][2][2], 2, 2 };
+        } else if (row == 0 && col == 2) { // Top right corner
+            res.first = { FRONT, stickers[FRONT][2][2], 2, 2 };
+            res.second = { RIGHT, stickers[RIGHT][2][0], 2, 0 };
+        } else if (row == 2 && col == 0) { // Bottom left corner
+            res.first = { BACK, stickers[BACK][2][2], 2, 2 };
+            res.second = { LEFT, stickers[LEFT][2][0], 2, 0 };
+        } else { // Bottom right corner
+            res.first = { BACK, stickers[BACK][2][0], 2, 0 };
+            res.second = { RIGHT, stickers[RIGHT][2][2], 2, 2 };
+        }
+    } else {
+		res.first = { -1, '\0', -1, -1 };
+		res.second = { -1, '\0', -1, -1 };
+	}
+
+    return res;
+}
+
+pair<int, int> Cube::getSideCorners(const vector<StickerData>& corner) const {
+	pair<int, int> indices = { -1, -1 };
+
+	for (int i = 0; i < corner.size(); i++) {
+        if (corner[i].face == TOP || corner[i].face == BOTTOM) { // Once a non-side-facing index is found, assign the other indices
+            indices.first = (i + 1) % corner.size();
+            indices.second = (i + 2) % corner.size();
+        }
+    }
+
+	return indices;
+}
+
+bool Cube::checkCornerPosition(char baseColor, const pair<char, char>& colors) const {
+    // Check if the corner is in the correct spot.
+    // First, get the corner colors of the given row and column.
+    // Then, check the side-facing stickers and see if their faces contain the center colors of the correct faces.
+    pair<StickerData, pair<StickerData, StickerData>> corner = findCorner(baseColor, colors);
+    vector<StickerData> cornerStickers = { corner.first, corner.second.first, corner.second.second };
+    bool foundBase = false; 
+    int side1Idx, side2Idx;
+
+    // Determine if the base color is found, since different corners can have the same adjacent colors.
+    for (int i = 0; i < cornerStickers.size(); i++) {
+        if (cornerStickers[i].color == baseColor) {
+            foundBase = true;
+        }
+    }
+
+    // Proceed with checking the side-facing stickers if the base color was found.
+    if (foundBase) {
+		pair<int, int> indices = getSideCorners(cornerStickers);
+        char side1Center = stickers[cornerStickers[indices.first].face][1][1];
+        char side2Center = stickers[cornerStickers[indices.second].face][1][1];
+		
+        if (checkColors(colors, { side1Center, side2Center })) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 string Cube::getName() const { return name; }

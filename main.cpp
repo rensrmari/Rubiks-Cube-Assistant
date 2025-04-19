@@ -132,7 +132,7 @@ void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& orig
     bool fileSuccess = false;
     int fileStatus = handler.checkValidFile(true);
 
-    if (fileStatus == FileHandler::VALID_STATUS::VALID) {
+    if (fileStatus == FileHandler::VALID) {
         cout << "\nYou are now using \"" << fileName << "\".\n";
         fileSuccess = true;
     } else {
@@ -180,6 +180,7 @@ void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& orig
  * @param scramble The scramble sequence to update.
  */
 void applyRandomScramble(Cube& cube, string& scramble) {
+    const int MAX_MOVES = 100000;
     const int DEFAULT_MOVES = 25;
     string validTurns = "ULFRBD";
     string validModifiers = " \'2";
@@ -191,17 +192,17 @@ void applyRandomScramble(Cube& cube, string& scramble) {
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     // If invalid input, use default moves.
-    if (cin.fail()) {
+    if (cin.fail() && numMoves < 0 || numMoves > MAX_MOVES) {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         numMoves = DEFAULT_MOVES;
-        cout << "\nInvalid input, scrambling with " << numMoves << " moves instead.\n\n";
+        cout << "\nCannot process that request, scrambling with " << numMoves << " moves instead.\n\n";
     }
 
     // Apply random moves.
     int count = 0;
     while (count < numMoves) {
-        // Disable double turn modifier to ensure the exact number of moves.
+        // Disable double turn modifier at a count of one less to ensure the exact number of moves.
         if (count == numMoves - 1) {
             validModifiers = " \'";
         }
@@ -270,7 +271,7 @@ void handleLoadCube(Cube& cube, FileHandler& handler, bool& original, bool& usin
     handler.setFileName(fileName);
 
     int fileStatus = handler.checkValidFile(false);
-    if (fileStatus == FileHandler::VALID_STATUS::VALID && handler.processValidFile()) {
+    if (fileStatus == FileHandler::VALID && handler.processValidFile()) {
         cout << "\nSuccessfully loaded \"" << fileName << "\".\n";
         handler.displaySavedCubes();
 

@@ -19,9 +19,11 @@ void Assistant::solve() { // bool for hint? marker for each step, then return? p
         case WHITE_CORNERS:
             getWhiteCorners();
         case SECOND_LAYER:
-            getSecondLayer();
+            getSecondLayer(); // todo: improve the checking here
         case YELLOW_CROSS:
             getYellowCross();
+        case YELLOW_EDGES:
+            getYellowEdges();
         case YELLOW_CORNERS_POSITION:
             getYellowCornersPosition();
         case YELLOW_CORNERS_ORIENTATION:
@@ -232,18 +234,19 @@ void Assistant::printComplete(const string& message) const {
 }
 
 int Assistant::checkStage() const {
-    if (!checkWhiteCross()) { return Stages::WHITE_CROSS; }
-    if (!checkWhiteCorners()) { return Stages::WHITE_CORNERS; }
-    if (!checkSecondLayer()) { return Stages::SECOND_LAYER; }
-    if (!checkYellowCross()) { return Stages::YELLOW_CROSS; }
-    if (!checkYellowCornersPosition()) { return Stages::YELLOW_CORNERS_POSITION; }
-    if (!checkYellowCornersOrientation()) { return Stages::YELLOW_CORNERS_ORIENTATION; }
+    if (!checkWhiteCross()) { return WHITE_CROSS; }
+    if (!checkWhiteCorners()) { return WHITE_CORNERS; }
+    if (!checkSecondLayer()) { return SECOND_LAYER; }
+    if (!checkYellowCross()) { return YELLOW_CROSS; }
+    if (!checkYellowEdges()) { return YELLOW_EDGES; }
+    if (!checkYellowCornersPosition()) { return YELLOW_CORNERS_POSITION; }
+    if (!checkYellowCornersOrientation()) { return YELLOW_CORNERS_ORIENTATION; }
 
-    return Stages::ADJUST_UPPER_FACE; // Only the upper face needs to be turned to solve
+    return ADJUST_UPPER_FACE; // Only the upper face needs to be turned to solve
 }
 
 bool Assistant::checkWhiteCross() const {
-    int face = cube->findCenter('W');
+    int face = cube->findCenter('W'); // Get the white face so its edges can be checked
     
     if (checkWhiteCrossEdge(face, 0, 1) && checkWhiteCrossEdge(face, 1, 0)
     && checkWhiteCrossEdge(face, 1, 2) && checkWhiteCrossEdge(face, 2, 1)) {
@@ -351,7 +354,7 @@ void Assistant::getWhiteCross() {
 
 bool Assistant::checkWhiteCorners() const {
     if (checkWhiteCross()) {
-        int face = cube->findCenter('W');
+        int face = cube->findCenter('W'); // Get the white face to check its corners
         
         if (checkWhiteCorner(face, 0, 0) && checkWhiteCorner(face, 0, 2)
         && checkWhiteCorner(face, 2, 0) && checkWhiteCorner(face, 2, 2)) {
@@ -486,11 +489,14 @@ void Assistant::getWhiteCorners() {
 }
 
 bool Assistant::checkSecondLayer() const {
-    if (checkSecondLayerEdge({ Cube::BACK, Cube::RIGHT }, { 0, 2 })
-    && checkSecondLayerEdge({ Cube::RIGHT, Cube::FRONT }, { 0, 2 })
-    && checkSecondLayerEdge({ Cube::FRONT, Cube::LEFT }, { 0, 2 })
-    && checkSecondLayerEdge({ Cube::LEFT, Cube::BACK }, { 0, 2 })) {
-        return true;
+    // Check the pairs of faces to see if the edges are in their right positions.
+    if (checkWhiteCorners()) {
+        if (checkSecondLayerEdge({ Cube::BACK, Cube::RIGHT }, { 0, 2 })
+        && checkSecondLayerEdge({ Cube::RIGHT, Cube::FRONT }, { 0, 2 })
+        && checkSecondLayerEdge({ Cube::FRONT, Cube::LEFT }, { 0, 2 })
+        && checkSecondLayerEdge({ Cube::LEFT, Cube::BACK }, { 0, 2 })) {
+            return true;
+        }
     }
     
     return false;
@@ -505,8 +511,7 @@ bool Assistant::checkSecondLayerEdge(const pair<int, int>& faces, const pair<int
     char secondColor = cube->getAt(faces.second, 1, cols.second);
     char correctSecondColor = cube->getAt(faces.second, 1, 1);
     
-    // To be valid, the edge colors must match the center colors of adjacent faces,
-    // and the rows be in the middle of their faces.
+    // To be valid, the edge colors must match the center colors of adjacent faces.
     if (firstColor != correctFirstColor || secondColor != correctSecondColor) {
         return false;
     }
@@ -581,16 +586,16 @@ void Assistant::getSecondLayer() {
 
             // Apply algorithms to the edge.
             adjEdge = cube->getAdjEdge(useEdge.face, useEdge.row, useEdge.col);
-            int face = cube->findCenter(adjEdge.color);
+            int faceSlot = cube->findCenter(adjEdge.color);
             int row = useEdge.row;
             int col = useEdge.col;
             string algorithm = "";
             string message = "";
 
-            if (face < Cube::FRONT && row == 0 && col == 1) { // Edge is on the top and needs to be moved to the left
+            if (faceSlot < Cube::FRONT && row == 0 && col == 1) { // Edge is on the top and needs to be moved to the left
                 algorithm = "U'L'ULUFU'F'";
                 message = "[SECOND LAYER] Use an algorithm to bring down the " + edgeColors + " edge from the top to the left.";
-            } else if (face > Cube::FRONT && row == 0 && col == 1) { // Edge is on the top and needs to be moved to the right
+            } else if (faceSlot > Cube::FRONT && row == 0 && col == 1) { // Edge is on the top and needs to be moved to the right
                 algorithm = "URU'R'U'F'UF";
                 message = "[SECOND LAYER] Use an algorithm to bring down the " + edgeColors + " edge from the top to the right.";
             } else if (row == 1 && col == 0) { // Edge is in the correct left slot and needs to be oriented in place
@@ -606,14 +611,147 @@ void Assistant::getSecondLayer() {
 
         i = (i + 1) % 4; // Iterate over four edges
     }
+
+    printComplete("COMPLETED SECOND LAYER");
 }
 
 bool Assistant::checkYellowCross() const {
+    if (checkSecondLayer()) {
+        int face = cube->findCenter('Y'); // Get the yellow face so its edges can be checked
+
+        if (cube->getAt(face, 0, 1) == 'Y' && cube->getAt(face, 1, 0) == 'Y'
+        && cube->getAt(face, 1, 2) == 'Y' && cube->getAt(face, 2, 1)) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
 void Assistant::getYellowCross() {
+    // Get the yellow center facing up.
+    int face = cube->findCenter('Y');
+    processSequence(rotateToFace(face, Cube::TOP, false), "[YELLOW CROSS] Rotate the cube so that the yellow center is on top.");
 
+    // Check for various cases and solve them.
+    string algorithm = "";
+    string message = "";
+
+    while (!checkYellowCross()) {
+        // Check for line shapes first.
+        pair<bool, string> shape = checkLineShape();
+        if (shape.first) {
+            processSequence(shape.second, "[YELLOW CROSS] Turn the upper face to correctly position the line shape.");
+            algorithm = "FRUR'U'F'";
+            message = "[YELLOW CROSS] Perform an algorithm to get the line shape into a cross shape.";
+            break;
+        }
+
+        // Then, check for L shapes.
+        shape = checkLShape();
+        if (shape.first) {
+            processSequence(shape.second, "[YELLOW CROSS] Turn the upper face to correctly position the L shape.");
+            algorithm = "FURU'R'F'";
+            message = "[YELLOW CROSS] Perform an algorithm to get the L shape into a cross shape.";
+            break;
+        }
+
+        // Then, check for dot shapes.
+        if (checkDotShape()) {
+            algorithm = "FRUR'U'F'y2FRUR'U'F'y2FRUR'U'F'";
+            message = "[YELLOW CROSS] Perform two familiar algorithms to get the dot shape into a cross shape.";
+            break;
+        }
+    }
+
+    processSequence(algorithm, message);
+    printComplete("COMPLETED YELLOW CROSS");
+}
+
+pair<bool, string> Assistant::checkLShape() const {
+    pair<bool, string> res = { false, "" };
+
+    if (cube->getAt(Cube::TOP, 1, 0) == 'Y' && cube->getAt(Cube::TOP, 0, 1) == 'Y') { // L in top left - no additional positioning needed
+        res.first = true;
+    } else if (cube->getAt(Cube::TOP, 0, 1) == 'Y' && cube->getAt(Cube::TOP, 1, 2) == 'Y') { // L in top right - need one counterclockwise upper move
+        res.first = true;
+        res.second = "U'";
+    } else if (cube->getAt(Cube::TOP, 1, 2) == 'Y' && cube->getAt(Cube::TOP, 2, 1) == 'Y') { // L in bottom right - need two upper moves
+        res.first = true;
+        res.second = "U2";
+    } else if (cube->getAt(Cube::TOP, 2, 1) == 'Y' && cube->getAt(Cube::TOP, 1, 0) == 'Y') { // L in bottom left - need one clockwise upper move
+        res.first = true;
+        res.second = "U";
+    }
+
+    return res;
+}
+
+pair<bool, string> Assistant::checkLineShape() const {
+    pair<bool, string> res = { false, "" };
+
+    if (cube->getAt(Cube::TOP, 1, 0) == 'Y' && cube->getAt(Cube::TOP, 1, 2) == 'Y') { // Line is horizontal - no additional positioning needed
+        res.first = true;
+    } else if (cube->getAt(Cube::TOP, 0, 1) == 'Y' && cube->getAt(Cube::TOP, 2, 1) == 'Y') { // Line is vertical - needs a single upper move
+        res.first = true;
+        res.second = "U";
+    }
+    return res;
+}
+
+bool Assistant::checkDotShape() const {
+    // The dot shape must have a singular yellow color in the center
+    // and not have any yellow on the top edges (but corners are OK).
+    if (cube->getAt(Cube::TOP, 1, 1) == 'Y'
+    && cube->getAt(Cube::TOP, 0, 1) != 'Y'
+    && cube->getAt(Cube::TOP, 1, 0) != 'Y'
+    && cube->getAt(Cube::TOP, 1, 2) != 'Y'
+    && cube->getAt(Cube::TOP, 2, 1)) {
+        return true;
+    }
+
+    return false;
+}
+
+bool Assistant::checkYellowEdges() const {
+    if (checkYellowCross()) {
+        int face = cube->findCenter('Y'); // Get the yellow face so its edges can be checked
+
+        if (checkYellowEdge(face, { 0, 1 }) && checkYellowEdge(face, { 1, 0 })
+        && checkYellowEdge(face, { 1, 2 }) && checkYellowEdge(face, { 2, 1 })) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool Assistant::checkYellowEdge(int face, const pair<int, int>& coord) const {
+    StickerData adjEdge = cube->getAdjEdge(face, coord.first, coord.second);
+    char centerColor = cube->getAt(adjEdge.face, 1, 1);
+
+    // The top of the edge has to be yellow, and the adjacent edge's color
+    // must match its faces center color.
+    if (cube->getAt(face, coord.first, coord.second) == 'Y'
+    && adjEdge.color == centerColor) {
+        return true;
+    }
+
+    return false;
+}
+
+void Assistant::getYellowEdges() {
+    // Get the yellow center facing up.
+    int face = cube->findCenter('Y');
+    processSequence(rotateToFace(face, Cube::FRONT, false), "[YELLOW EDGES] Rotate the cube so that the yellow center is on top.");
+    
+    // 
+
+    while (!checkYellowEdges()) {
+
+    }
+
+    printComplete("COMPLETED YELLOW EDGES");
 }
 
 bool Assistant::checkYellowCornersPosition() const {

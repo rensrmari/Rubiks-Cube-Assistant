@@ -11,7 +11,7 @@ using namespace std;
 
 class Assistant {
 public:
-	enum Stages { WHITE_CROSS, WHITE_CORNERS, SECOND_LAYER, YELLOW_CROSS, YELLOW_CORNERS_POSITION, YELLOW_CORNERS_ORIENTATION, ADJUST_UPPER_FACE };
+	enum Stages { WHITE_CROSS, WHITE_CORNERS, SECOND_LAYER, YELLOW_CROSS, YELLOW_EDGES, YELLOW_CORNERS_POSITION, YELLOW_CORNERS_ORIENTATION, ADJUST_UPPER_FACE };
 
 	/**
 	 * Constructor for Assistant object.
@@ -204,6 +204,45 @@ private:
 	 * Attempts to achieve a yellow cross.
 	 */
 	void getYellowCross();
+	
+	/**
+	 * Checks for an L-shape during the yellow cross.
+	 * @return A pair containing whether or not the shape was found,
+	 * as well as the sequence to position the shape for its algorithm to work.
+	 */
+	pair<bool, string> checkLShape() const;
+
+	/**
+	 * Checks for a line shape during the yellow cross.
+	 * @return A pair containing whether or not the shape was found,
+	 * as well as the sequence to position the shape for its algorithm to work.
+	 */
+	pair<bool, string> checkLineShape() const;
+
+	/**
+	 * Checks for a dot shape during the yellow cross.
+	 * @return Whether or not the shape was found.
+	 */
+	bool checkDotShape() const;
+
+	/**
+	 * Checks if the yellow edges have been oriented correctly (matching the center colors of their faces).
+	 * @return True if they have been correctly oriented.
+	 */
+	bool checkYellowEdges() const;
+
+	/**
+	 * Checks if a yellow edge is oriented correctly during the yellow edges solution.
+	 * @param face The face of the yellow edges.
+	 * @param coord A coordinate on the yellow face, whose adjacent sticker needs to be checked.
+	 * @return True if the yellow edge is correctly oriented.
+	 */
+	bool checkYellowEdge(int face, const pair<int, int>& coord) const;
+
+	/**
+	 * Attemps to achieve correctly oriented yellow edges.
+	 */
+	void getYellowEdges();
 
 	/**
 	 * Checks if the yellow corners have been positioned correctly.

@@ -26,7 +26,7 @@ int FileHandler::checkValidFile(bool acceptEmpty) const {
     
     // First check if unable to open file.
     if (!ifs.is_open()) {
-        return VALID_STATUS::CANT_OPEN;
+        return CANT_OPEN;
     }
 
     // Check if the file is empty, if it should be considered valid.
@@ -34,9 +34,9 @@ int FileHandler::checkValidFile(bool acceptEmpty) const {
     ifs >> ch;
 
     if (ifs.eof() && acceptEmpty) {
-        return VALID_STATUS::VALID;
+        return VALID;
     } else if (ifs.eof() && !acceptEmpty) { // File is not supposed to be empty
-        return VALID_STATUS::NO_DATA;
+        return NO_DATA;
     } else {
         ifs.unget(); // Prepare for checking valid CSV
     }
@@ -66,21 +66,21 @@ int FileHandler::checkValidFile(bool acceptEmpty) const {
 
         // If stream fails or the other conditions are invalid, the file is invalid.
         if (!iss) {
-            return VALID_STATUS::BAD_FORMAT;
+            return BAD_FORMAT;
         } else if (uniqueNames.count(name) == 1) {
-            return VALID_STATUS::DUPLICATE_NAMES;
+            return DUPLICATE_NAMES;
         } else if (!Cube::checkMoves(scramble) || !Cube::checkMoves(moves)) {
-            return VALID_STATUS::INVALID_MOVES;
+            return INVALID_MOVES;
         } else { // Check if the applied moves (now valid) and given total moves match
             if (Cube::countMoves(moves) != totalMoves) {
-                return VALID_STATUS::MISMATCHED_MOVES;
+                return MISMATCHED_MOVES;
             }
         }
 
         uniqueNames.insert(name);
     }
     
-    return VALID_STATUS::VALID;
+    return VALID;
 }
 
 void FileHandler::processLine(istringstream& iss, string& str) const {
@@ -97,22 +97,22 @@ void FileHandler::processLine(istringstream& iss, string& str) const {
 
 void FileHandler::displayError(int status) const {
     switch (status) {
-        case VALID_STATUS::CANT_OPEN:
+        case CANT_OPEN:
             cout << "\nError: Could not open \"" << file << "\".\n";
             break;
-        case VALID_STATUS::NO_DATA:
+        case NO_DATA:
             cout << "\nError: No data found in \"" << file << "\".\n";
             break;
-        case VALID_STATUS::BAD_FORMAT:
+        case BAD_FORMAT:
             cout << "\nError: Could not process \"" << file << "\".\n";
             break;
-        case VALID_STATUS::DUPLICATE_NAMES:
+        case DUPLICATE_NAMES:
             cout << "\nError: There were duplicate names found in \"" << file << "\".\n";
             break;
-        case VALID_STATUS::INVALID_MOVES:
+        case INVALID_MOVES:
             cout << "\nError: There were invalid moves found in \"" << file << "\".\n";
             break;
-        case VALID_STATUS::MISMATCHED_MOVES:
+        case MISMATCHED_MOVES:
             cout << "\nError: The total move count and applied moves in \"" << file << "\" are conflicting.\n";
             break;
         default:
@@ -121,7 +121,7 @@ void FileHandler::displayError(int status) const {
 }
 
 bool FileHandler::processValidFile() {
-    if (checkValidFile(false) != VALID_STATUS::VALID) {
+    if (checkValidFile(false) != VALID) {
         return false;
     }
 

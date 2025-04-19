@@ -45,12 +45,12 @@ private:
 
 	/**
 	 * Returns a sequence that will result in a face in a given position.
-	 * @param face The original face to move.
+	 * @param face The original face to move, which will be updated.
 	 * @param newFace Where the original face should end up.
 	 * @param onlyYMoves Whether or not the rotation should only include y rotations, which is required for some processes.
 	 * @return A string containing rotations that result in the desired position.
 	 */
-	string rotateToFace(int face, int newFace, bool onlyYMoves) const;
+	string rotateToFace(int& face, int newFace, bool onlyYMoves) const;
 
 	/**
 	 * Picks an outward facing sticker to use, meaning it must not be facing the top or bottom.
@@ -66,6 +66,14 @@ private:
 	 * @return A string containing a sequence that will result in an edge in the bottom of the front face.
 	 */
 	string turnEdgeToBottom(int& row, int& col) const;
+
+	/**
+	 * Turns an edge to the top and updates its coordinates during the second layer solution.
+	 * @param row The row of the edge.
+	 * @param col The column of the edge.
+	 * @return A string containing a sequence that will result in an edge on top.
+	 */
+	string turnEdgetoTop(int& row, int& col) const;
 
 	/**
 	 * Returns a sequence that will result in a edge in a given face, assuming it is the top or bottom on the front face.
@@ -161,6 +169,25 @@ private:
 	 * @return True if it has been completed.
 	 */
 	bool checkSecondLayer() const;
+
+	/**
+	 * Checks if an edge of the second layer is correctly positioned and oriented.
+	 * @param faces The faces of the edge.
+	 * @param cols The columns of the edge.
+	 * @return True if the edge is correct.
+	 */
+	bool checkSecondLayerEdge(const pair<int, int>& faces, const pair<int, int>& cols) const;
+
+	/**
+	 * Checks if an edge of the second layer is correctly positioned,
+	 * which would be achieved by having its front-facing sticker matching the center
+	 * of the front face, or by having being already situated in its correct spot,
+	 * but needing to be oriented correctly.
+	 * @param frontSticker The data associated with the front-facing sticker.
+	 * @param adjSticker The data of the adjacent sticker.
+	 * @return Whether or not the edge is correctly positioned.
+	 */
+	bool checkSecondLayerPosition(StickerData frontEdge, StickerData adjEdge) const;
 
 	/**
 	 * Attempts to complete the second layer.

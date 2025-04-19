@@ -32,6 +32,7 @@ public:
     static const map<char, string> COLOR_STRINGS;
     static const map<int, string> FACE_STRINGS;
     static const int NUM_FACES = 6;
+    static const int MAX_DISPLAY = 150;
     
     /**
      * Creates a string representing the given data.
@@ -413,8 +414,16 @@ private:
 
     /**
      * Prints the current moves.
+     * @return A string with the current moves.
      */
-    void printCurrentMoves() const;
+    string printCurrentMoves() const;
+
+    /**
+     * Creates a string dependent on the number of moves to prevent intrusive display.
+     * @param moves The moves to be checked.
+     * @return A string that either contains the moves or indicates the count.
+     */
+    string showMoves(const string& moves) const;
 
     char stickers[NUM_FACES][SIZE][SIZE];
     string name;

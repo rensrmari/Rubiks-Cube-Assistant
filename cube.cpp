@@ -596,11 +596,10 @@ void Cube::displayState(bool printCommands) const {
 		 << printSpacing(MIDDLE_PADDING) << printFaceSegment(BOTTOM, INDIV_WIDTH, 2) << printCommandWithSpacing(RIGHT_PADDING, count, printCommands) << endl << endl;
 		
 	// Print cube data.
-	string scrambleString = tokenizeMoves(scramble);
+	string scrambleString = showMoves(tokenizeMoves(scramble));
 	cout << "Original scramble: " << (scrambleString.length() > 0 ? scrambleString : "None") << endl;
 	cout << "Total moves: " << totalMoves << endl;
-	cout << "Current moves: ";
-	printCurrentMoves();
+	cout << "Current moves: " << printCurrentMoves();
 	cout << endl;
 }
 
@@ -692,9 +691,10 @@ string Cube::printCommandSegment(int line) const {
 	return "";
 }
 
-void Cube::printCurrentMoves() const {
+string Cube::printCurrentMoves() const {
 	stack<string> temp = currentMoves;
 	vector<string> reversed;
+	string res = "";
 	bool moves = false;
 
 	while (temp.size() > 0) {
@@ -705,10 +705,22 @@ void Cube::printCurrentMoves() const {
 
 	if (moves) {
 		for (int i = reversed.size() - 1; i >= 0; i--) {
-			cout << reversed[i] << " ";
+			res += reversed[i] + " ";
 		}
 	} else {
-		cout << "None";
+		res = "None";
+	}
+
+	return showMoves(res);
+}
+
+string Cube::showMoves(const string& moves) const {
+	int count = countMoves(moves);
+
+	if (count >= MAX_DISPLAY) {
+		return "(" + to_string(count) + " moves)";
+	} else {
+		return moves;
 	}
 }
 

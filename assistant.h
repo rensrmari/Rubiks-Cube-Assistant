@@ -258,9 +258,25 @@ private:
 	bool checkYellowCornersPosition() const;
 
 	/**
+	 * Checks if a yellow corner is in its correct position.
+	 * @param face The face of the corner.
+	 * @param row The row to check.
+	 * @param col The column to check.
+	 * @return True if it is in its correct position.
+	 */
+	bool checkYellowCornerPosition(int face, int row, int col) const;
+
+	/**
 	 * Attempts to correct the yellow corner positioning.
 	 */
 	void getYellowCornersPosition();
+
+	/**
+	 * Returns a string that would rotate the Cube, positioning a correct yellow corner in the top right front spot.
+	 * @param corner A vector of stickers that represent the corner.
+	 * @return A sequence that will result in this corner being positioned in this spot.
+	 */
+	string positionRightCorner(const vector<StickerData>& corner) const;
 
 	/**
 	 * Checks if the yellow corners have been oriented correctly.

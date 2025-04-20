@@ -871,14 +871,96 @@ string Assistant::prepareYellowEdges(const string& matchInfo, const pair<char, c
 
 bool Assistant::checkYellowCornersPosition() const {
     if (checkYellowEdges()) {
-        
+        int face = cube->findCenter('Y');
+
+        if (checkYellowCornerPosition(face, 0, 0) && checkYellowCornerPosition(face, 0, 2)
+        && checkYellowCornerPosition(face, 2, 0) && checkYellowCornerPosition(face, 2, 2)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Assistant::checkYellowCornerPosition(int face, int row, int col) const {
+    pair<StickerData, StickerData> adjCorners = cube->getAdjCorners(face, row, col);
+    pair<char, char> adjColors = { adjCorners.first.color, adjCorners.second.color };
+
+    // Populate adjacent colors with non-yellow colors only.
+    char topColor = cube->getAt(face, row, col);
+    if (topColor != 'Y') {
+        if (adjColors.first == 'Y') {
+            adjColors.first = topColor;
+        } else {
+            adjColors.second = topColor;
+        }
+    }
+
+    // Check if the non-yellow colors are next to their faces.
+    if (cube->checkCornerPosition('Y', adjColors)) {
+        return true;
     }
 
     return false;
 }
 
 void Assistant::getYellowCornersPosition() {
+    // Get the yellow center facing up.
+    int face = cube->findCenter('Y');
+    processSequence(rotateToFace(face, Cube::TOP, false), "[YELLOW CORNERS POSITION] Rotate the cube so that the yellow center is on top.");
 
+    // Iterate through the four corners until they are all in their proper positions.
+    vector<pair<int, int>> yellowCorners = {
+        { 0, 0 },
+        { 0, 2 },
+        { 2, 0 },
+        { 2, 2 }
+    };
+
+    while (!checkYellowCornersPosition()) {
+        // Find a corner in its correct slot.
+        bool found = false;
+        int row, col;
+        for (int i = 0; i < yellowCorners.size(); i++) {
+            int r = yellowCorners[i].first;
+            int c = yellowCorners[i].second;
+            if (checkYellowCornerPosition(face, r, c)) {
+                found = true;
+                row = r;
+                col = c;
+                break;
+            }
+        }
+
+        // If a corner was found, it needs to be positioned in the top right front spot.
+        if (found) {
+            StickerData sticker = { face, cube->getAt(face, row, col), row, col };
+            pair<StickerData, StickerData> adjCorners = cube->getAdjCorners(face, row, col);
+            string cornerColors = Cube::getColors({ sticker.color, adjCorners.first.color, adjCorners.second.color }) + " corner";
+            processSequence(positionRightCorner({ sticker, adjCorners.first, adjCorners.second }), "[YELLOW CORNERS POSITION] Rotate the cube so that the " + cornerColors + " is on the Top, Front, and Right faces.");
+        }
+
+        // Apply the algorithm for this step.
+        string algorithm = "URU'L'UR'U'L";
+        string message = "[YELLOW CORNERS POSITION] Perform an algorithm to swap all the yellow corners.";
+
+        processSequence(algorithm, message);
+    }
+
+    printComplete("COMPLETED YELLOW CORNERS POSITION");
+}
+
+string Assistant::positionRightCorner(const vector<StickerData>& corner) const {
+    // Iterate through the stickers to find one that is at (0, 2) (top, right, front).
+    int face;
+
+    for (int i = 0; i < corner.size(); i++) {
+        if (corner[i].row == 0 && corner[i].col == 2) {
+            face = corner[i].face;
+        }
+    }
+
+    return rotateToFace(face, Cube::FRONT, true);
 }
 
 bool Assistant::checkYellowCornersOrientation() const {

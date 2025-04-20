@@ -272,7 +272,7 @@ private:
 	void getYellowCornersPosition();
 
 	/**
-	 * Returns a string that would rotate the Cube, positioning a correct yellow corner in the top right front spot.
+	 * Returns a string that would rotate the Cube, positioning a correct yellow corner in the top, right, front spot.
 	 * @param corner A vector of stickers that represent the corner.
 	 * @return A sequence that will result in this corner being positioned in this spot.
 	 */
@@ -288,6 +288,20 @@ private:
 	 * Attempts to orient yellow corners correctly.
 	 */
 	void getYellowCornersOrientation();
+
+	/**
+	 * Finds an incorrectly oriented yellow corner.
+	 * @param useUMoves Whether or not U moves should be used to position this corner in the top, right, front spot.
+	 * @return Whether or not the corner could be found, the sequence that will position the corner correctly,
+	 * and the colors of the corner.
+	 */
+	pair<bool, pair<string, vector<char>>> findNotOriented(bool useUMoves) const;
+
+	/**
+	 * Corrects the orientation of a yellow corner in the top, right, front position.
+	 * @return A sequence that will result in the yellow corner being oriented up.
+	 */
+	string correctOrientation() const;
 
 	Cube* cube;
 };

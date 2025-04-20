@@ -19,7 +19,7 @@ void Assistant::solve() { // bool for hint? marker for each step, then return? p
         case WHITE_CORNERS:
             getWhiteCorners();
         case SECOND_LAYER:
-            getSecondLayer(); // todo: improve the checking here
+            getSecondLayer();
         case YELLOW_CROSS:
             getYellowCross();
         case YELLOW_EDGES:
@@ -27,7 +27,7 @@ void Assistant::solve() { // bool for hint? marker for each step, then return? p
         case YELLOW_CORNERS_POSITION:
             getYellowCornersPosition();
         case YELLOW_CORNERS_ORIENTATION:
-            getYellowCornersOrientation(); // auf?
+            getYellowCornersOrientation();
     }
 }
 
@@ -229,8 +229,19 @@ char Assistant::getSideColor(char color, const pair<char, char>& adjColors) cons
 }
 
 void Assistant::printComplete(const string& message) const {
-    const int WIDTH = 30;
-    cout << "\n\n" << string(WIDTH, '-') << " " << message << " " << string(WIDTH, '-') << "\n\n";
+    const int TOTAL_WIDTH = 80;
+    int remaining = (TOTAL_WIDTH - message.length());
+    int width1, width2;
+
+    // Calculations for printed messages of equal widths.
+    if (remaining % 2 == 0) {
+        width1 = remaining / 2 + 1;
+        width2 = remaining / 2;
+    } else {
+        width1 = width2 = remaining / 2;
+    }
+
+    cout << "\n\n" << string(width1, '-') << " " << message << " " << string(width2, '-') << "\n\n";
 }
 
 int Assistant::checkStage() const {
@@ -773,20 +784,25 @@ void Assistant::getYellowEdges() {
     char incorrect2 = cube->getAdjEdge(face, incorrectCoords[1].first, incorrectCoords[1].second).color;
     string incorrectEdges = Cube::getColors({ 'Y', incorrect1 }) + " and " + Cube::getColors({ 'Y', incorrect2 }) + " edges";
 
-    // Once there are two matching edges, rotate the cube to allow the algorithms to work.
-    string algorithm = "";
-    string message = "";
-    if (configuration == "OPPOSITE") {
-        processSequence(prepareYellowEdges(configuration, { incorrect1, incorrect2 }), "[YELLOW EDGES] Rotate the cube so that the " + incorrectEdges + " are on the Front and Back faces.");
-        algorithm = "URUR'URU2R'y2URUR'URU2R'U'"; // ?
-        message = "[YELLOW EDGES] Perform two algorithms to swap both the " + incorrectEdges + ".";
-    } else {
-        processSequence(prepareYellowEdges(configuration, { incorrect1, incorrect2 }), "[YELLOW EDGES] Rotate the cube so that the " + incorrectEdges + " are on the Front and Right faces.");
-        algorithm = "URUR'URU2R'"; // how to adj?
-        message = "[YELLOW EDGES] Perform an algorithm to swap the " + incorrectEdges + ".";
-    }
+    // Once edges match, rotate the cube to allow the algorithms to work.
+    // There is a possibility that all of them may match after, so check for that, too.
+    if (!checkYellowEdges()) {
+        string algorithm = "";
+        string message = "";
 
-    processSequence(algorithm, message);
+        if (configuration == "OPPOSITE") {
+            processSequence(prepareYellowEdges(configuration, { incorrect1, incorrect2 }), "[YELLOW EDGES] Rotate the cube so that the " + incorrectEdges + " are on the Front and Back faces.");
+            algorithm = "URUR'URU2R'y2URUR'URU2R'U'";
+            message = "[YELLOW EDGES] Perform two algorithms to swap both the " + incorrectEdges + ".";
+        } else {
+            processSequence(prepareYellowEdges(configuration, { incorrect1, incorrect2 }), "[YELLOW EDGES] Rotate the cube so that the " + incorrectEdges + " are on the Front and Right faces.");
+            algorithm = "URUR'URU2R'";
+            message = "[YELLOW EDGES] Perform an algorithm to swap the " + incorrectEdges + ".";
+        }
+
+        processSequence(algorithm, message);
+    }
+    
     printComplete("COMPLETED YELLOW EDGES");
 }
 
@@ -796,7 +812,7 @@ pair<string, vector<StickerData>> Assistant::matchYellowEdges() const {
     string sequence = "";
     Cube temp = *cube;
 
-    // Loop until 2 matches are found.
+    // Loop until 2 or more matches are found.
     int matches = 0;
     while (true) {
         matchStickers.clear();
@@ -822,7 +838,7 @@ pair<string, vector<StickerData>> Assistant::matchYellowEdges() const {
             matchStickers.push_back({ Cube::TOP, temp.getAdjEdge(Cube::TOP, 2, 1).color, 2, 1 });
         }
 
-        if (matches == 2) {
+        if (matches >= 2) {
             break;
         }
 
@@ -871,7 +887,7 @@ string Assistant::prepareYellowEdges(const string& matchInfo, const pair<char, c
 
 bool Assistant::checkYellowCornersPosition() const {
     if (checkYellowEdges()) {
-        int face = cube->findCenter('Y');
+        int face = cube->findCenter('Y'); // Get the yellow face so its corners can be checked.
 
         if (checkYellowCornerPosition(face, 0, 0) && checkYellowCornerPosition(face, 0, 2)
         && checkYellowCornerPosition(face, 2, 0) && checkYellowCornerPosition(face, 2, 2)) {
@@ -964,9 +980,107 @@ string Assistant::positionRightCorner(const vector<StickerData>& corner) const {
 }
 
 bool Assistant::checkYellowCornersOrientation() const {
+    if (checkYellowCornersPosition()) {
+        int face = cube->findCenter('Y'); // Get the yellow face so its corners can be checked.
+
+        if (cube->getAt(face, 0, 0) == 'Y' && cube->getAt(face, 0, 2) == 'Y'
+        && cube->getAt(face, 2, 0) == 'Y' && cube->getAt(face, 2, 2) == 'Y') {
+            return true;
+        }
+    }
+
     return false;
 }
 
 void Assistant::getYellowCornersOrientation() {
+    // Position the yellow face up.
+    int face = cube->findCenter('Y');
+    processSequence(rotateToFace(face, Cube::TOP, false), "[YELLOW CORNERS ORIENTATION] Rotate the cube so that the yellow center is on top.");
 
+    // Iterate through the corners until they are solved (yellow is facing up).
+    vector<pair<int, int>> yellowCorners = {
+        { 0, 0 },
+        { 0, 2 },
+        { 2, 0 },
+        { 2, 2 }
+    };
+
+    // Rotate to the first unsolved corner and position to the top, left, right face.
+    pair<bool, pair<string, vector<char>>> corner = findNotOriented(false);
+    string cornerColors = Cube::getColors(corner.second.second) + " corner";
+    processSequence(corner.second.first, "[YELLOW CORNER ORIENTATION] Rotate the cube so that the " + cornerColors + " is on the Top, Right, and Front faces.");
+    
+    // Orient the corner.
+    string algorithm = correctOrientation();
+
+    while (corner.first) {
+        processSequence(algorithm, "[YELLOW CORNER ORIENTATION] Perform an algorithm to orient the " + cornerColors + " correctly.");
+
+        // Get the next corner and calculate the algorithm for the next iteration.
+        corner = findNotOriented(true);
+        cornerColors = Cube::getColors(corner.second.second) + " corner";
+        processSequence(corner.second.first, "[YELLOW CORNER ORIENTATION] Turn the upper face so that the " + cornerColors + " is on the Top, Right, and Front faces.");
+        algorithm = correctOrientation();
+    }
+
+    printComplete("COMPLETED YELLOW CORNER ORIENTATION");
+
+    // Adjust the upper face, if necessary.
+    string sequence = "";
+    Cube temp = *cube;
+
+    while (temp.getAt(Cube::FRONT, 0, 0) != temp.getAt(Cube::FRONT, 1, 1)) { // Side of upper face needs to match face center color
+        sequence += "U";
+        temp.doMoves("U", false);
+    }
+
+    processSequence(simplifySequence(sequence), "[ADJUST UPPER FACE] Turn the upper face to correctly align it.");
+    printComplete("SOLVED");
+}
+
+pair<bool, pair<string, vector<char>>> Assistant::findNotOriented(bool useUMoves) const {
+    vector<char> colors = { '\0' };
+    pair<bool, pair<string, vector<char>>> res = { false, make_pair("", colors) };
+    string sequence = "";
+    string toAdd = useUMoves ? "U" : "y";
+    Cube temp = *cube;
+
+    // Locate the corner.
+    int count = 3;
+    while (count >= 0) {
+        count--;
+
+        if (temp.getAt(Cube::TOP, 2, 2) != 'Y') {
+            res.first = true;
+            break;
+        }
+
+        sequence += toAdd;
+        temp.doMoves(toAdd, false);
+    }
+
+    // This means an unoriented corner had been found.
+    if (res.first) {
+        res.second.first = simplifySequence(sequence);
+    
+        // Get the colors of the corner.
+        char topColor = temp.getAt(Cube::TOP, 2, 2);
+        pair<StickerData, StickerData> adjStickers = temp.getAdjCorners(Cube::TOP, 2, 2);
+        res.second.second = { topColor, adjStickers.first.color, adjStickers.second.color };
+    }
+
+    return res;
+}
+
+string Assistant::correctOrientation() const {
+    string sequence = "";
+    Cube temp = *cube;
+
+    // The correct corner orientation is when yellow is facing up.
+    while (temp.getAt(Cube::TOP, 2, 2) != 'Y') {
+        sequence += "R'D'RD";
+        temp.doMoves("R'D'RD", false);
+    }
+
+    return sequence;
 }

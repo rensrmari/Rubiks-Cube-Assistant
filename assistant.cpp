@@ -293,23 +293,23 @@ void Assistant::getWhiteCross() {
             StickerData correctEdge = cube->findEdge('W', correctFaceColor);
             StickerData adjEdge = cube->getAdjEdge(correctEdge.face, correctEdge.row, correctEdge.col);
             StickerData useEdge = pickOutward({ correctEdge, adjEdge }); // Only use the edge that appears in front
-            string edgeColors = Cube::getColors({ correctEdge.color, adjEdge.color });
+            string edgeColors = Cube::getColors({ correctEdge.color, adjEdge.color }) + " edge";
             
             // Rotate the Cube so that the edge is in front.
-            processSequence(rotateToFace(useEdge.face, Cube::FRONT, true), "[WHITE CROSS] Rotate the cube so that the " + edgeColors + " edge is in front.");
+            processSequence(rotateToFace(useEdge.face, Cube::FRONT, true), "[WHITE CROSS] Rotate the cube so that the " + edgeColors + " is in front.");
 
             // Check if the edge is in the correct position.
             int correctFace = cube->findCenter(correctFaceColor);
             if (useEdge.face != correctFace) {
-                processSequence(turnEdgeToBottom(useEdge.row, useEdge.col), "[WHITE CROSS] Position the " + edgeColors + " edge on the bottom.");
+                processSequence(turnEdgeToBottom(useEdge.row, useEdge.col), "[WHITE CROSS] Position the " + edgeColors + " on the bottom.");
 
                 // Turn the bottom face to position it on the correct face.
                 processSequence(turnEdgeToFace(useEdge.face, correctFace, useEdge.row, useEdge.col, false),
-                                "[WHITE CROSS] Turn the bottom face to position the " + edgeColors + " edge on the " + Cube::FACE_STRINGS.at(correctFace) + " face.");
+                                "[WHITE CROSS] Turn the bottom face to position the " + edgeColors + " on the " + Cube::FACE_STRINGS.at(correctFace) + " face.");
                 useEdge.face = correctFace;
 
                 // Rotate the Cube so that the edge is once again in front.
-                processSequence(rotateToFace(useEdge.face, Cube::FRONT, true), "[WHITE CROSS] Rotate the cube so that the " + edgeColors + " edge is in front again.");
+                processSequence(rotateToFace(useEdge.face, Cube::FRONT, true), "[WHITE CROSS] Rotate the cube so that the " + edgeColors + " is in front again.");
             }
             
             // Perform a certain algorithm to get the edge in the correct slot.
@@ -322,25 +322,25 @@ void Assistant::getWhiteCross() {
 
             if (color == 'W' && row == 0 && col == 1) { // Edge is in correct spot but needs to be oriented
                 algorithm = "FU'RU";
-                message = "[WHITE CROSS] Perform an algorithm to orient the " + edgeColors + " edge correctly.";
+                message = "[WHITE CROSS] Perform an algorithm to orient the " + edgeColors + " correctly.";
             } else if (color == 'W' && row == 1 && col == 0) { // Edge is on the left, facing front
                 algorithm = "UL'U'";
-                message = "[WHITE CROSS] Perform an algorithm to bring up the " + edgeColors + " edge from the left.";
+                message = "[WHITE CROSS] Perform an algorithm to bring up the " + edgeColors + " from the left.";
             } else if (color == 'W' && row == 1 && col == 2) { // Edge is on the right, facing front
                 algorithm = "U'RU";
-                message = "[WHITE CROSS] Perform an algorithm to bring up the " + edgeColors + " edge from the right.";
+                message = "[WHITE CROSS] Perform an algorithm to bring up the " + edgeColors + " from the right.";
             } else if (color == 'W' && row == 2 && col == 1) { // Edge is on the bottom, facing front
                 algorithm = "F'U'RU";
-                message = "[WHITE CROSS] Perform an algorithm to bring up the " + edgeColors + " edge from the bottom.";
+                message = "[WHITE CROSS] Perform an algorithm to bring up the " + edgeColors + " from the bottom.";
             } else if (color != 'W' && row == 1 && col == 0) { // Edge is on the left, facing left
                 algorithm = "F";
-                message = "[WHITE CROSS] Use a move to bring up the " + edgeColors + " edge from the left.";
+                message = "[WHITE CROSS] Use a move to bring up the " + edgeColors + " from the left.";
             } else if (color != 'W' && row == 1 && col == 2) { // Edge is on the right, facing right
                 algorithm = "F'";
-                message = "[WHITE CROSS] Use a move to bring up the " + edgeColors + " edge from the right.";
+                message = "[WHITE CROSS] Use a move to bring up the " + edgeColors + " from the right.";
             } else { // Edge is on the bottom, facing down
                 algorithm = "F2";
-                message = "[WHITE CROSS] Use two moves to bring up the " + edgeColors + " edge from the bottom.";
+                message = "[WHITE CROSS] Use two moves to bring up the " + edgeColors + " from the bottom.";
             }
 
             processSequence(algorithm, message);
@@ -410,7 +410,7 @@ void Assistant::getWhiteCorners() {
     while (!checkWhiteCorners()) {
         pair<int, int> corner = whiteCorners[i]; // A corner to possibly correct
         pair<int, int> adjFaces = adjPairs[i]; // The two faces that the corner must be in between
-        pair<char, char> faceColors = { cube->getAt(adjFaces.first, 1, 1), cube->getAt(adjFaces.second, 1, 1) }; // Face colors the corner must be between
+        pair<char, char> faceColors = { cube->getAt(adjFaces.first, 1, 1), cube->getAt(adjFaces.second, 1, 1) }; // Colors of the faces the corner must be between
 
         // Check if the edge needs to be corrected.
         if (!checkWhiteCorner(Cube::TOP, corner.first, corner.second)) {
@@ -418,25 +418,25 @@ void Assistant::getWhiteCorners() {
             pair<StickerData, pair<StickerData, StickerData>> correctCorner = cube->findCorner('W', faceColors);
             pair<char, char> adjCornerColors = { correctCorner.second.first.color, correctCorner.second.second.color };
             StickerData useCorner = pickOutward({ correctCorner.first, correctCorner.second.first, correctCorner.second.second });
-            string cornerColors = Cube::getColors({ correctCorner.first.color, adjCornerColors.first, adjCornerColors.second });
+            string cornerColors = Cube::getColors({ correctCorner.first.color, adjCornerColors.first, adjCornerColors.second }) + " corner";
 
             // Rotate the Cube to the corner's position.
-            processSequence(rotateToFace(useCorner.face, Cube::FRONT, true), "[WHITE CORNERS] Rotate the cube so that the " + cornerColors + " corner is in front.");
+            processSequence(rotateToFace(useCorner.face, Cube::FRONT, true), "[WHITE CORNERS] Rotate the cube so that the " + cornerColors + " is in front.");
 
             // Check if the corner is between its proper faces.
             if (!cube->checkCornerPosition('W', adjCornerColors)) {
                 // Position the corner to the bottom.
-                processSequence(turnCornerToBottom(useCorner.row, useCorner.col), "[WHITE CORNERS] Position the " + cornerColors + " corner on the bottom.");
+                processSequence(turnCornerToBottom(useCorner.row, useCorner.col), "[WHITE CORNERS] Position the " + cornerColors + " on the bottom.");
 
                 // Turn the corner to the correct faces.
                 int face1 = cube->findCenter(faceColors.first); // Locate the correct faces as they may have changed due to rotation
                 int face2 = cube->findCenter(faceColors.second);
-                string cornerFaces = Cube::getFaces({ face1, face2 });
+                string cornerFaces = Cube::getFaces({ face1, face2 }) + " faces";
                 processSequence(turnCornerToFaces('W', adjCornerColors, useCorner.face, false),
-                                "[WHITE CORNERS] Turn the bottom face to position the " + cornerColors + " corner on the " + cornerFaces + " faces.");
+                                "[WHITE CORNERS] Turn the bottom face to position the " + cornerColors + " on the " + cornerFaces + ".");
 
                 // Rotate the Cube so that the corner is in front again.
-                processSequence(rotateToFace(useCorner.face, Cube::FRONT, true), "[WHITE CORNERS] Rotate the cube so that the " + cornerColors + " corner is in front again.");
+                processSequence(rotateToFace(useCorner.face, Cube::FRONT, true), "[WHITE CORNERS] Rotate the cube so that the " + cornerColors + " is in front again.");
             }
 
             // Apply algorithms to the corner to correct it.
@@ -449,34 +449,34 @@ void Assistant::getWhiteCorners() {
             
             if (color == 'W' && row == 0 && col == 0) { // Corner in top left, facing front
                 algorithm = "LD'L'F'D'F";
-                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " corner on the top left.";
+                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " on the top left.";
             } else if (color == 'W' && row == 0 && col == 2) { // Corner in top right, facing front
                 algorithm = "R'DRFDF'";
-                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " corner on the top right.";
+                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " on the top right.";
             } else if (color == 'W' && row == 2 && col == 0) { // Corner in bottom left, facing front
                 algorithm = "F'D'F";
-                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " corner from the bottom left.";
+                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " from the bottom left.";
             } else if (color == 'W' && row == 2 && col == 2) { // Corner in bottom right, facing front
                 algorithm = "FDF'";
-                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " corner from the bottom right.";
+                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " from the bottom right.";
             } else if (color != 'W' && sideColor == 'W' && row == 0 && col == 0) { // Corner in top left, facing left
                 algorithm = "LDL'D'LDL'";
-                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " corner on the top left.";
+                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " on the top left.";
             } else if (color != 'W' && sideColor == 'W' && row == 0 && col == 2) { // Corner in top right, facing right
                 algorithm = "R'D'RDR'D'R";
-                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " corner on the top right.";
+                message = "[WHITE CORNERS] Use an algorithm to orient the " + cornerColors + " on the top right.";
             } else if (color != 'W' && sideColor == 'W' && row == 2 && col == 0) { // Corner in bottom left, facing left
                 algorithm = "LDL'";
-                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " corner from the bottom left.";
+                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " from the bottom left.";
             } else if (color != 'W' && sideColor == 'W' && row == 2 && col == 2) { // Corner in bottom right, facing right
                 algorithm = "R'D'R";
-                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " corner from the bottom right.";
+                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " from the bottom right.";
             } else if (color != 'W' && sideColor != 'W' && row == 2 && col == 0) { // Corner in bottom left, facing down
                 algorithm = "LD'L'F'D2F";
-                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " corner from the bottom left.";
+                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " from the bottom left.";
             } else { // Corner in bottom right, facing down
                 algorithm = "R'DRFD2F'";
-                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " corner from the bottom right.";
+                message = "[WHITE CORNERS] Use an algorithm to bring up the " + cornerColors + " from the bottom right.";
             }
 
             processSequence(algorithm, message);
@@ -519,7 +519,7 @@ bool Assistant::checkSecondLayerEdge(const pair<int, int>& faces, const pair<int
     return true;
 }
 
-bool Assistant::checkSecondLayerPosition(StickerData frontEdge, StickerData adjEdge) const {
+bool Assistant::checkSecondLayerPosition(const StickerData& frontEdge, const StickerData& adjEdge) const {
     // First check if the edge is already in the middle and between the correct faces.
     char frontSideColor = cube->getAt(frontEdge.face, 1, 1);
     char adjSideColor = cube->getAt(adjEdge.face, 1, 1);
@@ -560,15 +560,15 @@ void Assistant::getSecondLayer() {
             StickerData correctEdge = cube->findEdge(faceColors.first, faceColors.second);
             StickerData adjEdge = cube->getAdjEdge(correctEdge.face, correctEdge.row, correctEdge.col);
             StickerData useEdge = pickOutward({ correctEdge, adjEdge });
-            string edgeColors = Cube::getColors({ correctEdge.color, adjEdge.color });
+            string edgeColors = Cube::getColors({ correctEdge.color, adjEdge.color }) + " edge";
 
             // Rotate to the edge's position.
-            processSequence(rotateToFace(useEdge.face, Cube::FRONT, true), "[SECOND LAYER] Rotate the cube so that the " + edgeColors + " edge is in front.");
+            processSequence(rotateToFace(useEdge.face, Cube::FRONT, true), "[SECOND LAYER] Rotate the cube so that the " + edgeColors + " is in front.");
 
             // Check if the edge is in the right position.
             if (!checkSecondLayerPosition(useEdge, cube->getAdjEdge(useEdge.face, useEdge.row, useEdge.col))) {
                 // Position the edge up to move it to the proper face.
-                processSequence(turnEdgetoTop(useEdge.row, useEdge.col), "[SECOND LAYER] Position the " + edgeColors + " edge on top.");
+                processSequence(turnEdgetoTop(useEdge.row, useEdge.col), "[SECOND LAYER] Position the " + edgeColors + " on top.");
 
                 // Move the edge to the proper face.
                 int face1 = cube->findCenter(correctEdge.color);
@@ -577,8 +577,8 @@ void Assistant::getSecondLayer() {
                 // The new face is calculated using the front-facing edge, as its center color
                 // needs to match the center color of its new face.
                 int useFace = (useEdge.color == correctEdge.color) ? face1 : face2;
-                string edgeFaces = cube->getFaces({ face1, face2 });
-                processSequence(turnEdgeToFace(useEdge.face, useFace, useEdge.row, useEdge.col, true), "[SECOND LAYER] Turn the upper face to move the " + edgeColors + " edge to the " + edgeFaces + " faces.");
+                string edgeFaces = cube->getFaces({ face1, face2 }) + " faces";
+                processSequence(turnEdgeToFace(useEdge.face, useFace, useEdge.row, useEdge.col, true), "[SECOND LAYER] Turn the upper face to move the " + edgeColors + " to the " + edgeFaces + ".");
 
                 // Rotate to the new face.
                 processSequence(rotateToFace(useEdge.face, Cube::FRONT, true), "[SECOND LAYER] Rotate the cube so that the " + edgeColors + " is in front again.");
@@ -594,16 +594,16 @@ void Assistant::getSecondLayer() {
 
             if (faceSlot < Cube::FRONT && row == 0 && col == 1) { // Edge is on the top and needs to be moved to the left
                 algorithm = "U'L'ULUFU'F'";
-                message = "[SECOND LAYER] Use an algorithm to bring down the " + edgeColors + " edge from the top to the left.";
+                message = "[SECOND LAYER] Use an algorithm to bring down the " + edgeColors + " from the top to the left.";
             } else if (faceSlot > Cube::FRONT && row == 0 && col == 1) { // Edge is on the top and needs to be moved to the right
                 algorithm = "URU'R'U'F'UF";
-                message = "[SECOND LAYER] Use an algorithm to bring down the " + edgeColors + " edge from the top to the right.";
+                message = "[SECOND LAYER] Use an algorithm to bring down the " + edgeColors + " from the top to the right.";
             } else if (row == 1 && col == 0) { // Edge is in the correct left slot and needs to be oriented in place
                 algorithm = "L'ULU'FU2F'U'FU2F'";
-                message = "[SECOND LAYER] Use an algorithm to orient the " + edgeColors + " edge correctly on the left.";
+                message = "[SECOND LAYER] Use an algorithm to orient the " + edgeColors + " correctly on the left.";
             } else { // Edge is in the correct right slot and needs to be oriented in place.
                 algorithm = "RU'R'UF'U2FUF'U2F";
-                message = "[SECOND LAYER] Use an algorithm to orient the " + edgeColors + " edge correctly on the right.";
+                message = "[SECOND LAYER] Use an algorithm to orient the " + edgeColors + " correctly on the right.";
             }
 
             processSequence(algorithm, message);
@@ -637,31 +637,26 @@ void Assistant::getYellowCross() {
     string algorithm = "";
     string message = "";
 
-    while (!checkYellowCross()) {
-        // Check for line shapes first.
-        pair<bool, string> shape = checkLineShape();
-        if (shape.first) {
-            processSequence(shape.second, "[YELLOW CROSS] Turn the upper face to correctly position the line shape.");
-            algorithm = "FRUR'U'F'";
-            message = "[YELLOW CROSS] Perform an algorithm to get the line shape into a cross shape.";
-            break;
-        }
+    // Check for line shapes first.
+    pair<bool, string> shape = checkLineShape();
+    if (shape.first) {
+        processSequence(shape.second, "[YELLOW CROSS] Turn the upper face to correctly position the line shape.");
+        algorithm = "FRUR'U'F'";
+        message = "[YELLOW CROSS] Perform an algorithm to get the line shape into a cross shape.";
+    }
 
-        // Then, check for L shapes.
-        shape = checkLShape();
-        if (shape.first) {
-            processSequence(shape.second, "[YELLOW CROSS] Turn the upper face to correctly position the L shape.");
-            algorithm = "FURU'R'F'";
-            message = "[YELLOW CROSS] Perform an algorithm to get the L shape into a cross shape.";
-            break;
-        }
+    // Then, check for L shapes.
+    shape = checkLShape();
+    if (shape.first) {
+        processSequence(shape.second, "[YELLOW CROSS] Turn the upper face to correctly position the L shape.");
+        algorithm = "FURU'R'F'";
+        message = "[YELLOW CROSS] Perform an algorithm to get the L shape into a cross shape.";
+    }
 
-        // Then, check for dot shapes.
-        if (checkDotShape()) {
-            algorithm = "FRUR'U'F'y2FRUR'U'F'y2FRUR'U'F'";
-            message = "[YELLOW CROSS] Perform two familiar algorithms to get the dot shape into a cross shape.";
-            break;
-        }
+    // Then, check for dot shapes.
+    if (checkDotShape()) {
+        algorithm = "FRUR'U'F'y2FRUR'U'F'y2FRUR'U'F'";
+        message = "[YELLOW CROSS] Perform two algorithms to get the dot shape into a cross shape.";
     }
 
     processSequence(algorithm, message);
@@ -717,8 +712,8 @@ bool Assistant::checkYellowEdges() const {
     if (checkYellowCross()) {
         int face = cube->findCenter('Y'); // Get the yellow face so its edges can be checked
 
-        if (checkYellowEdge(face, { 0, 1 }) && checkYellowEdge(face, { 1, 0 })
-        && checkYellowEdge(face, { 1, 2 }) && checkYellowEdge(face, { 2, 1 })) {
+        if (cube->checkEdgeMatch(face, 'Y', { 0, 1 }) && cube->checkEdgeMatch(face, 'Y', { 1, 0 })
+        && cube->checkEdgeMatch(face, 'Y', { 1, 2 }) && cube->checkEdgeMatch(face, 'Y', { 2, 1 })) {
             return true;
         }
     }
@@ -726,35 +721,159 @@ bool Assistant::checkYellowEdges() const {
     return false;
 }
 
-bool Assistant::checkYellowEdge(int face, const pair<int, int>& coord) const {
-    StickerData adjEdge = cube->getAdjEdge(face, coord.first, coord.second);
-    char centerColor = cube->getAt(adjEdge.face, 1, 1);
-
-    // The top of the edge has to be yellow, and the adjacent edge's color
-    // must match its faces center color.
-    if (cube->getAt(face, coord.first, coord.second) == 'Y'
-    && adjEdge.color == centerColor) {
-        return true;
-    }
-
-    return false;
-}
-
 void Assistant::getYellowEdges() {
     // Get the yellow center facing up.
     int face = cube->findCenter('Y');
-    processSequence(rotateToFace(face, Cube::FRONT, false), "[YELLOW EDGES] Rotate the cube so that the yellow center is on top.");
+    processSequence(rotateToFace(face, Cube::TOP, false), "[YELLOW EDGES] Rotate the cube so that the yellow center is on top.");
+
+    // Turn the upper face until two edges adjacent to the yellow sticker match their center colors.
+    // They will either be adjacent or opposite to one another.
+    pair<string, vector<StickerData>> matchData = matchYellowEdges();
+    vector<StickerData> matchStickers = matchData.second;
+    vector<pair<int, int>> matchCoords = { { matchStickers[0].row, matchStickers[0].col }, { matchStickers[1].row, matchStickers[1].col } };
+    char color1 = matchStickers[0].color;
+    char color2 = matchStickers[1].color;
+    string matchingEdges = Cube::getColors({ 'Y', color1 }) + " and " + Cube::getColors( { 'Y', color2 }) + " edges";
+    processSequence(matchData.first, "[YELLOW EDGES] Turn the upper face until the " + matchingEdges + " match their adjacent faces' center colors.");
     
-    // 
-
-    while (!checkYellowEdges()) {
-
+    // Check if the matching edges are opposite or adjacent.
+    string configuration = "";
+    if (matchCoords[0].first == matchCoords[1].first
+    || matchCoords[0].second == matchCoords[1].second) {
+        configuration = "OPPOSITE";
+    } else {
+        configuration = "ADJACENT";
     }
 
+    // Determine the incorrect edges by running the yellow edge coordinates against the matches.
+    vector<pair<int, int>> incorrectCoords;
+    vector<pair<int, int>> yellowEdges = {
+        { 0, 1 },
+        { 1, 0 },
+        { 1, 2 },
+        { 2, 1 }
+    };
+
+    for (int i = 0; i < yellowEdges.size(); i++) {
+        pair<int, int> coord = yellowEdges[i];
+        bool isIncorrect = true;
+
+        for (int j = 0; j < matchCoords.size(); j++) {
+            if (coord == matchCoords[j]) {
+                isIncorrect = false;
+            }
+        }
+
+        if (isIncorrect) {
+            incorrectCoords.push_back(coord);
+        }
+    }
+
+    char incorrect1 = cube->getAdjEdge(face, incorrectCoords[0].first, incorrectCoords[0].second).color;
+    char incorrect2 = cube->getAdjEdge(face, incorrectCoords[1].first, incorrectCoords[1].second).color;
+    string incorrectEdges = Cube::getColors({ 'Y', incorrect1 }) + " and " + Cube::getColors({ 'Y', incorrect2 }) + " edges";
+
+    // Once there are two matching edges, rotate the cube to allow the algorithms to work.
+    string algorithm = "";
+    string message = "";
+    if (configuration == "OPPOSITE") {
+        processSequence(prepareYellowEdges(configuration, { incorrect1, incorrect2 }), "[YELLOW EDGES] Rotate the cube so that the " + incorrectEdges + " are on the Front and Back faces.");
+        algorithm = "URUR'URU2R'y2URUR'URU2R'U'"; // ?
+        message = "[YELLOW EDGES] Perform two algorithms to swap both the " + incorrectEdges + ".";
+    } else {
+        processSequence(prepareYellowEdges(configuration, { incorrect1, incorrect2 }), "[YELLOW EDGES] Rotate the cube so that the " + incorrectEdges + " are on the Front and Right faces.");
+        algorithm = "URUR'URU2R'"; // how to adj?
+        message = "[YELLOW EDGES] Perform an algorithm to swap the " + incorrectEdges + ".";
+    }
+
+    processSequence(algorithm, message);
     printComplete("COMPLETED YELLOW EDGES");
 }
 
+pair<string, vector<StickerData>> Assistant::matchYellowEdges() const {
+    pair<string, vector<StickerData>> res;
+    vector<StickerData> matchStickers;
+    string sequence = "";
+    Cube temp = *cube;
+
+    // Loop until 2 matches are found.
+    int matches = 0;
+    while (true) {
+        matchStickers.clear();
+        matches = 0;
+
+        if (temp.checkEdgeMatch(Cube::TOP, 'Y', { 0, 1 })) {
+            matches++;
+            matchStickers.push_back({ Cube::TOP, temp.getAdjEdge(Cube::TOP, 0, 1).color, 0, 1 });
+        }
+    
+        if (temp.checkEdgeMatch(Cube::TOP, 'Y', { 1, 0 })) {
+            matches++;
+            matchStickers.push_back({ Cube::TOP, temp.getAdjEdge(Cube::TOP, 1, 0).color, 1, 0 });
+        }
+    
+        if (temp.checkEdgeMatch(Cube::TOP, 'Y', { 1, 2 })) {
+            matches++;
+            matchStickers.push_back({ Cube::TOP, temp.getAdjEdge(Cube::TOP, 1, 2).color, 1, 2 });
+        }
+    
+        if (temp.checkEdgeMatch(Cube::TOP, 'Y', { 2, 1 })) {
+            matches++;
+            matchStickers.push_back({ Cube::TOP, temp.getAdjEdge(Cube::TOP, 2, 1).color, 2, 1 });
+        }
+
+        if (matches == 2) {
+            break;
+        }
+
+        sequence += "U";
+        temp.doMoves("U", false);
+    }
+
+    res.first = simplifySequence(sequence);
+    res.second = matchStickers;
+    
+    return res;
+}
+
+string Assistant::prepareYellowEdges(const string& matchInfo, const pair<char, char>& matchCoords) const {
+    char originalColor1 = matchCoords.first;
+    char originalColor2 = matchCoords.second;
+    vector<pair<int, int>> toCheck;
+
+    // Determine what coordinates to check for the matching edges.
+    if (matchInfo == "OPPOSITE") { // Incorrect, opposite edges must be on the front and back faces
+        toCheck.push_back({ 2, 1 });
+        toCheck.push_back({ 0, 1 });
+    } else { // Incorrect, adjacent edges must be on the front and right faces
+        toCheck.push_back({ 2, 1 });
+        toCheck.push_back({ 1, 2 });
+    }
+
+    // Check the coordinates' adjacent stickers for the original colors.
+    string sequence = "";
+    Cube temp = *cube;
+    while (true) {
+        char edgeColor1 = temp.getAdjEdge(Cube::TOP, toCheck[0].first, toCheck[0].second).color;
+        char edgeColor2 = temp.getAdjEdge(Cube::TOP, toCheck[1].first, toCheck[1].second).color;
+        
+        if (Cube::checkColors({ originalColor1, originalColor2 }, { edgeColor1, edgeColor2 })) {
+            sequence = simplifySequence(sequence);
+            break;
+        }
+
+        sequence += "y";
+        temp.doMoves("y", false);
+    }
+
+    return sequence;
+}
+
 bool Assistant::checkYellowCornersPosition() const {
+    if (checkYellowEdges()) {
+        
+    }
+
     return false;
 }
 

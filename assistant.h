@@ -187,7 +187,7 @@ private:
 	 * @param adjSticker The data of the adjacent sticker.
 	 * @return Whether or not the edge is correctly positioned.
 	 */
-	bool checkSecondLayerPosition(StickerData frontEdge, StickerData adjEdge) const;
+	bool checkSecondLayerPosition(const StickerData& frontEdge, const StickerData& adjEdge) const;
 
 	/**
 	 * Attempts to complete the second layer.
@@ -232,12 +232,19 @@ private:
 	bool checkYellowEdges() const;
 
 	/**
-	 * Checks if a yellow edge is oriented correctly during the yellow edges solution.
+	 * Returns a sequence that results in two yellow edges matching their face's center colors.
 	 * @param face The face of the yellow edges.
-	 * @param coord A coordinate on the yellow face, whose adjacent sticker needs to be checked.
-	 * @return True if the yellow edge is correctly oriented.
+	 * @return A sequence of moves, and the data of the matching edges.
 	 */
-	bool checkYellowEdge(int face, const pair<int, int>& coord) const;
+	pair<string, vector<StickerData>> matchYellowEdges() const;
+
+	/**
+	 * Returns a string that would rotate the Cube so that algorithms will properly swap yellow edges.
+	 * @param matchInfo The way the matching yellow edges are set up.
+	 * @param matchCoords The colors of the incorrect edges.
+	 * @return A sequence that will result in properly positioned yellow edges.
+	 */
+	string prepareYellowEdges(const string& matchInfo, const pair<char, char>& matchCoords) const;
 
 	/**
 	 * Attemps to achieve correctly oriented yellow edges.

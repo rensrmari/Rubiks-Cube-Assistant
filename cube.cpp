@@ -328,6 +328,20 @@ StickerData Cube::getAdjEdge(int face, int row, int col) const {
     return res;
 }
 
+bool Cube::checkEdgeMatch(int face, char color, const pair<int, int>& coord) const {
+	StickerData adjEdge = getAdjEdge(face, coord.first, coord.second);
+    char centerColor = stickers[adjEdge.face][1][1];
+
+    // The top of the edge has to be yellow, and the adjacent edge's color
+    // must match its faces center color.
+    if (stickers[face][coord.first][coord.second] == color
+    && adjEdge.color == centerColor) {
+        return true;
+    }
+
+    return false;
+}
+
 pair<StickerData, pair<StickerData, StickerData>> Cube::findCorner(char baseColor, const pair<char, char>& adjColors) const {
     pair<StickerData, pair<StickerData, StickerData>> res = {
 		{-1, '\0', -1, -1},

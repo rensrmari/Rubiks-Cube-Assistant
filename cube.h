@@ -148,6 +148,15 @@ public:
     StickerData getAdjEdge(int face, int row, int col) const;
 
 	/**
+	 * Checks if an edge has a certain color, and if its adjacent color matches their face's center color.
+	 * @param face The face of the edge.
+     * @param color The color that the edge must have.
+	 * @param coord A coordinate on the face, whose adjacent sticker needs to be checked.
+	 * @return True if the edge has the given color and if its adjacent color matches.
+	 */
+	bool checkEdgeMatch(int face, char color, const pair<int, int>& coord) const;
+
+	/**
 	 * Locates a corner with the given criteria.
 	 * @param baseColor The base color of the sticker.
 	 * @param adjColors The adjacent colors of the sticker.
@@ -172,7 +181,7 @@ public:
     pair<int, int> getSideCorners(const vector<StickerData>& corner) const;
 
 	/**
-	 * Checks if an edge is in its correct spot.
+	 * Checks if a corner is in its correct spot.
 	 * @param baseColor The base color.
 	 * @param colors The colors adjacent to the base color.
 	 * @return Whether or not the corner is in its correct spot.

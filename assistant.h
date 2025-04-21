@@ -11,7 +11,8 @@ using namespace std;
 
 class Assistant {
 public:
-	enum Stages { WHITE_CROSS, WHITE_CORNERS, SECOND_LAYER, YELLOW_CROSS, YELLOW_EDGES, YELLOW_CORNERS_POSITION, YELLOW_CORNERS_ORIENTATION, ADJUST_UPPER_FACE };
+	enum Stages { WHITE_CROSS, WHITE_CORNERS, SECOND_LAYER, YELLOW_CROSS, YELLOW_EDGES, YELLOW_CORNERS_POSITION, YELLOW_CORNERS_ORIENTATION, SOLVED };
+	enum Instructions { EXIT, SKIP, CONT };
 
 	/**
 	 * Constructor for Assistant object.
@@ -23,18 +24,21 @@ public:
 	 * Solves the Cube, displaying steps for each stage.
 	 */
 	void solve();
-
-	/**
-	 * Displays a hint based on the current stage and the next move.
-	 */
-	void printHint() const;
 private:
+	/**
+	 * Prompts the user for instructions.
+	 * @param allowExiting Whether or not exiting should be allowed.
+	 * @return An integer representing the instruction.
+	 */
+	int prompt(bool allowExiting) const;
+
 	/**
 	 * Processes a sequence and displays the result.
 	 * @param sequence The sequence to process.
 	 * @param message The message to output if there was a sequence performed.
+	 * @return Whether or not a sequence has been executed.
 	 */
-	void processSequence(const string& sequence, const string& message);
+	bool processSequence(const string& sequence, const string& message);
 
 	/**
 	 * Simplfies clockwise sequences (triple moves -> prime, two moves have 2 appended).
@@ -141,8 +145,9 @@ private:
 
 	/**
 	 * Attempts to achieve a white cross on the Cube.
+	 * @return An intenger representing a user instruction.
 	 */
-	void getWhiteCross();
+	int getWhiteCross();
 
 	/**
 	 * Checks if the white corners have been completed.
@@ -161,8 +166,9 @@ private:
 
 	/**
 	 * Attempts to achieve white corners on the Cube.
+	 * @return An intenger representing a user instruction.
 	 */
-	void getWhiteCorners();
+	int getWhiteCorners();
 
 	/**
 	 * Checks if the second layer has been completed.
@@ -191,8 +197,9 @@ private:
 
 	/**
 	 * Attempts to complete the second layer.
+	 * @return An intenger representing a user instruction.
 	 */
-	void getSecondLayer();
+	int getSecondLayer();
 
 	/**
 	 * Checks if the yellow cross has been completed.
@@ -202,8 +209,9 @@ private:
 
 	/**
 	 * Attempts to achieve a yellow cross.
+	 * @return An intenger representing a user instruction.
 	 */
-	void getYellowCross();
+	int getYellowCross();
 	
 	/**
 	 * Checks for an L-shape during the yellow cross.
@@ -248,8 +256,9 @@ private:
 
 	/**
 	 * Attemps to achieve correctly oriented yellow edges.
+	 * @return An intenger representing a user instruction.
 	 */
-	void getYellowEdges();
+	int getYellowEdges();
 
 	/**
 	 * Checks if the yellow corners have been positioned correctly.
@@ -268,8 +277,9 @@ private:
 
 	/**
 	 * Attempts to correct the yellow corner positioning.
+	 * @return An intenger representing a user instruction.
 	 */
-	void getYellowCornersPosition();
+	int getYellowCornersPosition();
 
 	/**
 	 * Returns a string that would rotate the Cube, positioning a correct yellow corner in the top, right, front spot.
@@ -286,8 +296,9 @@ private:
 
 	/**
 	 * Attempts to orient yellow corners correctly.
+	 * @return An intenger representing a user instruction.
 	 */
-	void getYellowCornersOrientation();
+	int getYellowCornersOrientation();
 
 	/**
 	 * Finds an incorrectly oriented yellow corner.

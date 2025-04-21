@@ -180,10 +180,10 @@ void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& orig
  * @param scramble The scramble sequence to update.
  */
 void applyRandomScramble(Cube& cube, string& scramble) {
-    const int MAX_MOVES = 100000;
+    const int MAX_MOVES = 50000;
     const int DEFAULT_MOVES = 25;
     string validTurns = "ULFRBD";
-    string validModifiers = " \'2";
+    string validModifiers = " '2";
 
     // Prompt user moves.
     int numMoves;
@@ -310,7 +310,6 @@ void useCube(Cube& cube, FileHandler& handler, bool newCube) {
     const string EXIT_COMMAND = "EXIT";
     const string SAVE_COMMAND = "SAVE";
     const string UNDO_COMMAND = "UNDO";
-    const string HINT_COMMAND = "HINT";
     const string SOLVE_COMMAND = "SOLVE";
 
     Assistant assistant(cube);
@@ -327,7 +326,7 @@ void useCube(Cube& cube, FileHandler& handler, bool newCube) {
         }
 
         // Prompt for a command.
-        cout << "Please enter a command or sequence of moves (EX: R2 U2 R): ";
+        cout << "Please enter a command or sequence of moves (EX: U2 D2 F2 B2 L2 R2): ";
         getline(cin, userInput);
 
         // Process the user's command.
@@ -353,10 +352,6 @@ void useCube(Cube& cube, FileHandler& handler, bool newCube) {
             invalidInput = false;
         } else if (userInput == UNDO_COMMAND) {
             cube.undo();
-            invalidInput = false;
-        } else if (userInput == HINT_COMMAND) {
-            // TODO: hint
-            
             invalidInput = false;
         } else if (userInput == SOLVE_COMMAND) {
             assistant.solve();
@@ -385,7 +380,16 @@ void switchMenu(bool& original, bool& updated) {
  * Displays title menu and provides valid options.
  */
 void displayTitle() {
-    cout << "\n\nWelcome to the Rubik's Cube Assistant!\n";
+    // https://www.asciiart.eu/text-to-ascii-art
+    cout << "\n\n ____        _     _ _    _        ____      _          \n"
+         << "|  _ \\ _   _| |__ (_) | _( )___   / ___|   _| |__   ___ \n"
+         << "| |_) | | | | '_ \\| | |/ /// __| | |  | | | | '_ \\ / _ \\\n"
+         << "|  _ <| |_| | |_) | |   <  \\__ \\ | |__| |_| | |_) |  __/\n"
+         << "|_| \\_\\\\__,_|_.__/|_|_|\\_\\ |___/  \\____\\__,_|_.__/ \\___|\n"
+         << "   / \\   ___ ___(_)___| |_ __ _ _ __ | |_\n"
+         << "  / _ \\ / __/ __| / __| __/ _` | '_ \\| __|\n"
+         << " / ___ \\\\__ \\__ \\ \\__ \\ || (_| | | | | |_\n"
+         << "/_/   \\_\\___/___/_|___/\\__\\__,_|_| |_|\\__|\n\n";
     cout << "\t(N) NEW CUBE\n";
     cout << "\t(L) LOAD CUBE\n";
     cout << "\t(G) GUIDE\n";
@@ -415,22 +419,28 @@ void displayLoadCube() {
  */
 void displayGuide() {
     cout << "\n\n[GUIDE]\n"
-         << "The Rubik's Cube Assistant program allows you to interact with a Rubik's cube with guidance of\n"
-         << "a computer using the beginner's method.\n\n";
+         << "The Rubik's Cube Assistant program allows you to interact with a Rubik's cube and receive guidance from\n"
+         << "an assistant that uses beginner's method.\n\n";
 
     cout << "To start interacting with your Rubik's cube, either create a new cube or load in a pre-existing one.\n"
          << "New Cube: You can scramble the new cube randomly or manually. You must provide a unique name for the\n"
-         << "\tcube to ensure that you can come back to it later. The provided file may be empty.\n"
+         << "          cube to ensure that you can come back to it later. The provided file may be empty.\n\n"
          << "Load Cube: Alternatively, you can use a cube that has already been set up. Simply provide the file\n"
-         << "\tname to be processed. The data within this file must have comma-separated values containing\n"
-         << "\ta unique name, correctly formatted original scramble, the moves applied, and the total moves.\n"
-         << "\tAfter providing a valid file, you will be prompted to enter the name of the cube you would\n"
-         << "\tlike to load.\n\n";
+         << "           name to be processed. The data within this file must have comma-separated values containing\n"
+         << "           a unique name, correctly formatted original scramble, the moves applied, and the total moves.\n"
+         << "           After providing a valid file, you will be prompted to enter the name of the cube you would\n"
+         << "           like to load.\n\n";
 
-    cout << "Once you have started interacting with your Rubik's cube, you will be presented with a set of valid\n"
-         << "commands. You will also have a flattened display of the cube. Additionally, your name, the original\n"
-         << "scramble, total moves, and current moves will be displayed.\n\n";
+    cout << "Once you have started interacting with your Rubik's cube, you will be shown with a flattened display\n"
+         << "of your cube, as well as its scramble, total moves, and current moves. You will also be presented with\n"
+         << "a set of valid commands, which include performing moves, undoing a move, saving your cube, and exiting.\n\n";
     
-    cout << "Note: The color orange (O) has been replaced with magenta for increased color compatibility.\n\n"
+    cout << "One of the commands is called \"SOLVE\", which is point of access to the assistant. From there, you may\n"
+         << "step through the stages of solving the cube, skip each stage, or exit the assistant*.\n\n";
+    
+    cout << "Notes:\n"
+         << " * As the assistant uses the beginner's method of solving, the last step (yellow corner orientation)\n"
+         << "   temporarily messes up the solved portions of the cube. Therefore, exiting is disabled for the step\n"
+         << " * The color orange (O) has been replaced with magenta for increased color compatibility.\n\n"
          << "Enter anything to go back: ";
 }

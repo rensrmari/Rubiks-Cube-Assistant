@@ -693,9 +693,9 @@ string Cube::printCommandSegment(int line) const {
 		case 10:
 			return "|  x: Clockwise rotation on the x-axis.                                       |";
 		case 11:
-			return "|  y: Clockwise rotation on the y-axis.                       HINT     SOLVE  |";
+			return "|  y: Clockwise rotation on the y-axis.                       SOLVE     UNDO  |";
 		case 12:
-			return "|  z: Clockwise rotation on the z-axis.            UNDO       SAVE      EXIT  |";
+			return "|  z: Clockwise rotation on the z-axis.                       SAVE      EXIT  |";
 		case 13:
 			return "-------------------------------------------------------------------------------";
 		default:

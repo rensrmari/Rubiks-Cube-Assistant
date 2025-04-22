@@ -1,0 +1,4 @@
+Clarence Mariano, R2 U2 R', U, 1
+John, , R, 1
+Don, RURF, , 0
+Joe, , , 0

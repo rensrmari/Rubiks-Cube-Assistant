@@ -1,21 +1,6 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#define WHITE_BG "\033[107m"
-#define RED_BG "\033[101m"
-#define GREEN_BG "\033[102m"
-#define BLUE_BG "\033[104m"
-#define ORANGE_BG "\033[105m"
-#define YELLOW_BG "\033[103m"
-#define WHITE_FG "\033[97m"
-#define RED_FG "\033[91m"
-#define GREEN_FG "\033[92m"
-#define BLUE_FG "\033[94m"
-#define ORANGE_FG "\033[95m"
-#define YELLOW_FG "\033[93m"
-#define BLACK_FG "\033[30m"
-#define RESET "\033[0m"
-
 #include "sticker_data.h"
 #include <string>
 #include <stack>
@@ -32,7 +17,7 @@ public:
     static const map<char, string> COLOR_STRINGS;
     static const map<int, string> FACE_STRINGS;
     static const int NUM_FACES = 6;
-    static const int MAX_DISPLAY = 150;
+    static const int MAX_DISPLAY = 100;
     
     /**
      * Creates a string representing the given data.
@@ -189,6 +174,12 @@ public:
 	bool checkCornerPosition(char baseColor, const pair<char, char>& colors) const;
 
     /**
+     * Checks if the Cube is solved (all faces contain one color).
+     * @return Whether or not the Cube is solved.
+     */
+    bool checkSolved() const;
+
+    /**
      * Gets the name of the Cube.
      * @return The name of the Cube.
      */
@@ -244,9 +235,10 @@ public:
     string doMoves(const string& moves, bool update);
 
     /**
-     * Undoes a move, outputting the result of the undo.
+     * Undoes a move, returning the result of the undo.
+     * @return A string that displays the result of the action.
      */
-    void undo();
+    string undo();
 
     /**
      * Resets the Cube object.

@@ -4,12 +4,13 @@
 #include "cube.h"
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <map>
 using namespace std;
 
 class FileHandler {
 public:
-	enum VALID_STATUS { VALID, CANT_OPEN, NO_DATA, BAD_FORMAT, DUPLICATE_NAMES, INVALID_MOVES, MISMATCHED_MOVES };
+	enum VALID_STATUS { VALID, CANT_OPEN, NO_DATA, EMPTY, BAD_FORMAT, DUPLICATE_NAMES, INVALID_MOVES, MISMATCHED_MOVES };
 
 	/**
 	 * Default constructor for FileHandler.
@@ -64,7 +65,7 @@ public:
 	 * @param name The name of the Cube.
 	 * @return Whether or not the load was successful.
 	 */
-	bool loadCube(Cube& cube, const string& name) const;
+	bool loadCube(Cube& cube, const string& name);
 
 	/**
 	 * Checks if a name is taken in a file.
@@ -74,10 +75,11 @@ public:
 	bool checkTaken(const string& name) const;
 
 	/**
-	 * Saves a given Cube into the file.
+	 * Tries saving Cube data to the file.
 	 * @param cube The Cube to save.
+	 * @return Whether or not the save was successful.
 	 */
-	void saveCubeToFile(const Cube& cube);
+	bool saveCubeToFile(const Cube& cube);
 
 	/**
 	 * Resets the FileHandler object.
@@ -88,9 +90,10 @@ private:
 	 * Processes a portion of a line until a comma is reached.
 	 * @param iss The istringstream to update.
 	 * @param str The string to update.
+	 * @param processSpaces Whether or not spaces should be processed.
 	 * return A string before the commas.
 	 */
-	void processLine(istringstream& iss, string& str) const;
+	void processLine(istringstream& iss, string& str, bool processSpaces) const;
 
 	/**
 	 * Displays a row of a table.

@@ -11,6 +11,22 @@
 #include <set>
 #include <vector>
 #include <utility>
+
+#define WHITE_BG "\033[107m"
+#define RED_BG "\033[101m"
+#define GREEN_BG "\033[102m"
+#define BLUE_BG "\033[104m"
+#define ORANGE_BG "\033[105m"
+#define YELLOW_BG "\033[103m"
+#define WHITE_FG "\033[97m"
+#define RED_FG "\033[91m"
+#define GREEN_FG "\033[92m"
+#define BLUE_FG "\033[94m"
+#define ORANGE_FG "\033[95m"
+#define YELLOW_FG "\033[93m"
+#define BLACK_FG "\033[30m"
+#define RESET "\033[0m"
+
 using namespace std;
 
 const set<char> Cube::VALID_MOVES = { 'U', 'L', 'F', 'R', 'B', 'D', 'x', 'y', 'z' };
@@ -122,6 +138,11 @@ string Cube::tokenizeMoves(const string& moves) {
 		} else {                          // Otherwise, the next letter will be another letter or EOF
 			res += string(1, ch) + " ";
 		}
+	}
+
+	// Strip trailing whitespace if necessary.
+	if (res[res.size() - 1] == ' ') {
+		res = res.substr(0, res.size() - 1);
 	}
 
 	return res;
@@ -330,9 +351,12 @@ StickerData Cube::getAdjEdge(int face, int row, int col) const {
 
 bool Cube::checkEdgeMatch(int face, char color, const pair<int, int>& coord) const {
 	StickerData adjEdge = getAdjEdge(face, coord.first, coord.second);
+
+	// Check if an actual adjacent edge was found, then proceed with verifiying the match.
+	if (adjEdge.row == -1) { return false; }
     char centerColor = stickers[adjEdge.face][1][1];
 
-    // The top of the edge has to be yellow, and the adjacent edge's color
+    // The top of the edge must be the given color, and the adjacent edge's color
     // must match its faces center color.
     if (stickers[face][coord.first][coord.second] == color
     && adjEdge.color == centerColor) {
@@ -478,9 +502,20 @@ pair<int, int> Cube::getSideCorners(const vector<StickerData>& corner) const {
 	pair<int, int> indices = { -1, -1 };
 
 	for (int i = 0; i < corner.size(); i++) {
-        if (corner[i].face == TOP || corner[i].face == BOTTOM) { // Once a non-side-facing index is found, assign the other indices
-            indices.first = (i + 1) % corner.size();
-            indices.second = (i + 2) % corner.size();
+        if (corner[i].face == TOP || corner[i].face == BOTTOM) {
+			// Once an non-side-facing index is found, the other indices are guaranteed to be side-facing,
+			// unless there is invalid data being input.
+			int testIdx1 = (i + 1) % corner.size();
+			int testIdx2 = (i + 2) % corner.size();
+
+			if (corner[testIdx1].face == TOP || corner[testIdx1].face == BOTTOM
+			|| corner[testIdx2].face == TOP || corner[testIdx2].face == BOTTOM) {
+				return indices;
+			} else {
+				indices.first = (i + 1) % corner.size();
+				indices.second = (i + 2) % corner.size();
+				return indices;
+			}
         }
     }
 
@@ -495,6 +530,8 @@ bool Cube::checkCornerPosition(char baseColor, const pair<char, char>& colors) c
     vector<StickerData> cornerStickers = { corner.first, corner.second.first, corner.second.second };
     bool foundBase = false; 
     int side1Idx, side2Idx;
+
+	if (corner.first.row == -1) { return false; }
 
     // Determine if the base color is found, since different corners can have the same adjacent colors.
     for (int i = 0; i < cornerStickers.size(); i++) {
@@ -517,6 +554,22 @@ bool Cube::checkCornerPosition(char baseColor, const pair<char, char>& colors) c
     return false;
 }
 
+bool Cube::checkSolved() const {
+	for (int i = 0; i < NUM_FACES; i++) {
+		char colorToMatch = stickers[i][0][0];
+
+		for (int j = 0; j < SIZE; j++) {
+			for (int k = 0; k < SIZE; k++) {
+				if (stickers[i][j][k] != colorToMatch) {
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
 string Cube::getName() const { return name; }
 
 void Cube::setName(const string& name) { this->name = name; }
@@ -536,6 +589,8 @@ string Cube::getCurrentMoves() const {
 		reversed.push_back(temp.top());
 		temp.pop();
 	}
+
+	reverse(reversed.begin(), reversed.end());
 
 	for (string move : reversed) {
 		res += move;
@@ -673,31 +728,31 @@ string Cube::printCommandWithSpacing(int spacing, int& counter, bool print) cons
 string Cube::printCommandSegment(int line) const {
 	switch (line) {
 		case 1:
-			return "-------------------------------------------------------------------------------";
+			return "-----------------------------------------------------------------------";
 		case 2:
-			return "| COMMANDS                                                                    |";
+			return "| COMMANDS                                                            |";
 		case 3:
-			return "| --------                                                                    |";
+			return "| --------                                                            |";
 		case 4:
-			return "|  U: Clockwise turn on the top side.          Note: You can append a \"'\"     |";
+			return "|  U: Clockwise turn on the top side.     Note: You can append a      |";
 		case 5:
-			return "|  L: Clockwise turn on the left side.               to a letter for          |";
+			return "|  L: Clockwise turn on the left side.          \"'\" to a letter for   |";
 		case 6:
-			return "|  F: Clockwise turn on the front side.              counterclockwise moves,  |";
+			return "|  F: Clockwise turn on the front side.         a counterclockwise    |";
 		case 7:
-			return "|  R: Clockwise turn on the right side.              or \"2\" for two moves.    |";
+			return "|  R: Clockwise turn on the right side.         move, or \"2\" for      |";
 		case 8: 
-			return "|  B: Clockwise turn on the back side.                                        |";
+			return "|  B: Clockwise turn on the back side.          two moves.            |";
 		case 9:
-			return "|  D: Clockwise turn on the bottom side.                                      |";
+			return "|  D: Clockwise turn on the bottom side.                              |";
 		case 10:
-			return "|  x: Clockwise rotation on the x-axis.                                       |";
+			return "|  x: Clockwise rotation on the x-axis.                               |";
 		case 11:
-			return "|  y: Clockwise rotation on the y-axis.                       SOLVE     UNDO  |";
+			return "|  y: Clockwise rotation on the y-axis.               SOLVE     UNDO  |";
 		case 12:
-			return "|  z: Clockwise rotation on the z-axis.                       SAVE      EXIT  |";
+			return "|  z: Clockwise rotation on the z-axis.               SAVE      EXIT  |";
 		case 13:
-			return "-------------------------------------------------------------------------------";
+			return "-----------------------------------------------------------------------";
 		default:
 			return "";
 	}
@@ -820,7 +875,7 @@ void Cube::processMove(char letter) {
 	}
 }
 
-void Cube::undo() {
+string Cube::undo() {
 	if (currentMoves.size() > 0) {
 		string undoneMove = currentMoves.top();
 		currentMoves.pop();
@@ -856,9 +911,9 @@ void Cube::undo() {
 		}
 
 		totalMoves--;
-		cout << "\nUndid " << undoneMove << ".\n";
+		return "\nUndid " + undoneMove + ".\n";
 	} else {
-		cout << "\nNo current moves to undo.\n";
+		return "\nNo current moves to undo.\n";
 	}
 }
 
@@ -869,9 +924,13 @@ bool Cube::operator==(const Cube& rhs) const {
 
 void Cube::reset() {
 	createSolved();
+	name = "";
 	scramble = "";
 	moves = "";
 	totalMoves = 0;
+
+	stack<string> newCurrentMoves;
+	currentMoves = newCurrentMoves;
 }
 
 void Cube::placeFace(const vector<vector<char>>& colors, int face) {

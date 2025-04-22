@@ -278,7 +278,8 @@ int Assistant::checkStage() const {
     if (!checkYellowCross()) { return YELLOW_CROSS; }
     if (!checkYellowEdges()) { return YELLOW_EDGES; }
     if (!checkYellowCornersPosition()) { return YELLOW_CORNERS_POSITION; }
-    return YELLOW_CORNERS_ORIENTATION;
+    if (!checkYellowCornersOrientation()) { return YELLOW_CORNERS_ORIENTATION; }
+    return SOLVED;
 }
 
 bool Assistant::checkWhiteCross() const {

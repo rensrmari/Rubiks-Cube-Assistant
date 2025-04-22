@@ -37,6 +37,8 @@ int FileHandler::checkValidFile(bool acceptEmpty) const {
         return VALID;
     } else if (ifs.eof() && !acceptEmpty) { // File is not supposed to be empty
         return NO_DATA;
+    } else if (!ifs.eof() && acceptEmpty) { // File is expected to be empty
+        return EMPTY;
     } else {
         ifs.unget(); // Prepare for checking valid CSV
     }
@@ -50,15 +52,15 @@ int FileHandler::checkValidFile(bool acceptEmpty) const {
         
         // Get name.
         string name = "";
-        processLine(iss, name);
+        processLine(iss, name, true);
 
         // Get scramble.
         string scramble = "";
-        processLine(iss, scramble);
+        processLine(iss, scramble, false);
 
         // Get applied moves.
         string moves = "";
-        processLine(iss, moves);
+        processLine(iss, moves, false);
 
         // Get number of total moves (must match the count of applied moves).
         int totalMoves;
@@ -83,15 +85,21 @@ int FileHandler::checkValidFile(bool acceptEmpty) const {
     return VALID;
 }
 
-void FileHandler::processLine(istringstream& iss, string& str) const {
+void FileHandler::processLine(istringstream& iss, string& str, bool processSpaces) const {
     char ch;
 
-    while (iss >> ch) {
+    while (iss.get(ch)) {
         if (ch == ',') { // Don't process comma
             break;
         }
-
-        str += ch;
+        
+        if (!processSpaces) {
+            if (ch != ' ') {
+                str += ch;
+            }
+        } else {
+            str += ch;
+        }
     }
 }
 
@@ -102,6 +110,9 @@ void FileHandler::displayError(int status) const {
             break;
         case NO_DATA:
             cout << "\nError: No data found in \"" << file << "\".\n";
+            break;
+        case EMPTY:
+            cout << "\nError: \"" << file << "\" is empty.\n";
             break;
         case BAD_FORMAT:
             cout << "\nError: Could not process \"" << file << "\".\n";
@@ -137,17 +148,17 @@ bool FileHandler::processValidFile() {
         
         // Get name.
         string name = "";
-        processLine(iss, name);
+        processLine(iss, name, true);
         cubeNames.push_back(name);
 
         // Get scramble.
         string scramble = "";
-        processLine(iss, scramble);
+        processLine(iss, scramble, false);
         cubeScrambles.push_back(scramble);
 
         // Get applied moves.
         string moves = "";
-        processLine(iss, moves);
+        processLine(iss, moves, false);
         cubeMoves.push_back(moves);
 
         // Get number of total moves.
@@ -183,7 +194,9 @@ void FileHandler::displayTableRow(const string& first, const string& second, int
     cout << left << "| " << setw(width - 2) << first << "| " << setw(width - 2) << second << "|" << endl;
 }
 
-bool FileHandler::loadCube(Cube& cube, const string& name) const {
+bool FileHandler::loadCube(Cube& cube, const string& name) {
+    if (!processValidFile()) { return false; }
+
     if (savedCubes.count(name) == 1) {
         cube = savedCubes.at(name);
         return true;
@@ -200,24 +213,30 @@ bool FileHandler::checkTaken(const string& name) const {
     return false;
 }
 
-void FileHandler::saveCubeToFile(const Cube& cube) {
+bool FileHandler::saveCubeToFile(const Cube& cube) {
+    // First check if the file is empty.
+    bool isEmpty = checkValidFile(true) == VALID;
+
+    // Try processing the file if the file contains values.
+    if (!isEmpty && !processValidFile()) { return false; }
+
+    // Try opening the file.
     ofstream ofs(file);
+    if (!ofs.is_open()) { return false; }
 
-    if (!ofs.is_open()) {
-        cout << "\nCould not open \"" << file << "\" for saving.\n";
-        return;
+    // If the file has valid values, update the cube data and push the entries.
+    // Otherwise, simply put the given cube data into the file.
+    if (!isEmpty) {
+        savedCubes[cube.getName()] = cube;
+        
+        for (const auto& pair : savedCubes) {
+            convertCubeData(ofs, pair.second);
+        }
     } else {
-        cout << "\nSaving cube data...\n";
+        convertCubeData(ofs, cube);
     }
-
-    // Update Cube data if it exists or add a new entry.
-    savedCubes[cube.getName()] = cube;
-
-    for (const auto& pair : savedCubes) {
-        convertCubeData(ofs, pair.second);
-    }
-
-    cout << "Saved " << cube.getName() << "'s cube to \"" << file << "\".\n";
+    
+    return true;
 }
 
 void FileHandler::convertCubeData(ofstream& ofs, const Cube& cube) const {

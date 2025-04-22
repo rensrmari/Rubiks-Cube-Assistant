@@ -1,6 +1,9 @@
 #include "assistant.h"
 #include "cube.h"
 #include "file_handler.h"
+#include "assistant_tests.h"
+#include "cube_tests.h"
+#include "file_handler_tests.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -9,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <limits>
+#include <cstring>
 using namespace std;
 
 void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& original, bool& usingCube);
@@ -16,6 +20,7 @@ void applyRandomScramble(Cube& cube, string& scramble);
 void applyManualScramble(Cube& cube, string& scramble);
 void handleLoadCube(Cube& cube, FileHandler& handler, bool& original, bool& usingCube);
 void useCube(Cube& cube, FileHandler& handler, bool newCube);
+void saveCube(Cube& cube, FileHandler& handler, bool& successful);
 
 char getCharacterInput();
 void switchMenu(bool& original, bool& updated);
@@ -24,8 +29,34 @@ void displayNewCube();
 void displayLoadCube();
 void displayGuide();
 
-int main() {
-    srand(time(0));
+int main(int argc, char* argv[]) {
+    // Check for command line arguments for unit tests.
+    if (argc > 1) {
+        char* arg = argv[1];
+        char assistantStr[] = "assistant";
+        char cubeStr[] = "cube";
+        char fileHandlerStr[] = "file_handler";
+
+        if (strcmp(arg, assistantStr) == 0) {
+            cout << "\nTesting the Assistant...\n";
+            AssistantTests test;
+            return test.runTests();
+        } else if (strcmp(arg, cubeStr) == 0) {
+            cout << "\nTesting the Cube...\n";
+            CubeTests test;
+            return test.runTests();
+        } else if (strcmp(arg, fileHandlerStr) == 0) {
+            cout << "\nTesting the File Handler...\n";
+            FileHandlerTests test;
+            return test.runTests();
+        } else {
+            cout << "\nInvalid argument. The valid arguments are:\n";
+            cout << "\tassistant    - Test the Assistant class\n";
+            cout << "\tcube         - Test the Cube class\n";
+            cout << "\tfile_handler - Test the File Handler class\n";
+            return 1;
+        }
+    }
 
     // Upon startup, allow user to navigate the main menus using letters.
     const char NEW_CUBE_CHAR = 'N';
@@ -45,6 +76,8 @@ int main() {
     Cube currentCube;
     bool createdNewCube = false;
     char userInput;
+
+    srand(time(0));
     
     while (true) {
         // Lets the user interact with the options on the title screen.
@@ -89,7 +122,6 @@ int main() {
         } else if (isGuide) { // Display guide and allow user to go back with character input
             displayGuide();
             userInput = getCharacterInput();
-            
             switchMenu(isGuide, isTitle);
         } else { // The user is using the Rubik's cube
             useCube(currentCube, handler, createdNewCube);
@@ -132,7 +164,7 @@ void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& orig
     bool fileSuccess = false;
     int fileStatus = handler.checkValidFile(true);
 
-    if (fileStatus == FileHandler::VALID) {
+    if (fileStatus == FileHandler::VALID || fileStatus == FileHandler::EMPTY) {
         cout << "\nYou are now using \"" << fileName << "\".\n";
         fileSuccess = true;
     } else {
@@ -148,6 +180,8 @@ void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& orig
     } else {
         applyManualScramble(cube, scramble);
     }
+    
+    cout << endl;
 
     // Add a name to the new cube.
     // If the file is a valid non-empty file, duplicate names must be checked.
@@ -180,19 +214,19 @@ void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& orig
  * @param scramble The scramble sequence to update.
  */
 void applyRandomScramble(Cube& cube, string& scramble) {
-    const int MAX_MOVES = 50000;
+    const int MAX_MOVES = 75000;
     const int DEFAULT_MOVES = 25;
     string validTurns = "ULFRBD";
     string validModifiers = " '2";
 
     // Prompt user moves.
     int numMoves;
-    cout << "\nPlease enter the number of scrambling moves: ";
+    cout << "\nPlease enter the number of scrambling moves (max " << MAX_MOVES << "): ";
     cin >> numMoves;
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     // If invalid input, use default moves.
-    if (cin.fail() && numMoves < 0 || numMoves > MAX_MOVES) {
+    if (cin.fail() || numMoves < 0 || numMoves > MAX_MOVES) {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         numMoves = DEFAULT_MOVES;
@@ -234,7 +268,7 @@ void applyManualScramble(Cube& cube, string& scramble) {
     bool stop = false;
 
     while (!stop) {
-        cout << "\nEnter your scramble with space-separated moves (enter 'Q' to finish): ";
+        cout << "\nEnter your scramble (or \"Q\" to finish): ";
         string moves;
         getline(cin, moves);
         istringstream iss(moves);
@@ -248,7 +282,8 @@ void applyManualScramble(Cube& cube, string& scramble) {
                 stop = true;
                 break;
             } else {
-                cout << "\nInvalid input.\n";
+                cout << "Invalid input. Valid moves include U, L, F, R, B, D, and modifiers (\"'\" or \"2\").\n";
+                break;
             }
         }
     }
@@ -340,18 +375,17 @@ void useCube(Cube& cube, FileHandler& handler, bool newCube) {
                 char userResponse = getCharacterInput();
 
                 if (userResponse == 'Y') {
-                    handler.saveCubeToFile(cube);
+                    saveCube(cube, handler, recentlySaved);
                 }
             }
 
             cout << "\nYou have finished using " << cube.getName() << "'s cube.\n";
             break;
         } else if (userInput == SAVE_COMMAND) {
-            handler.saveCubeToFile(cube);
-            recentlySaved = true;
+            saveCube(cube, handler, recentlySaved);
             invalidInput = false;
         } else if (userInput == UNDO_COMMAND) {
-            cube.undo();
+            cout << cube.undo();
             invalidInput = false;
         } else if (userInput == SOLVE_COMMAND) {
             assistant.solve();
@@ -367,7 +401,24 @@ void useCube(Cube& cube, FileHandler& handler, bool newCube) {
     handler.reset();
 }
 
-/** Switches the menu that the user is seeing.
+/**
+ * Handles the saving of a cube, displaying the status of the save.
+ * @param cube The cube to save.
+ * @param handler The FileHandler to use.
+ * @param successful Whether or not the save was successful.
+ */
+void saveCube(Cube& cube, FileHandler& handler, bool& successful) {
+    successful = handler.saveCubeToFile(cube);
+
+    if (successful) {
+        cout << "\nSaved " << cube.getName() << "'s cube to \"" << handler.getFileName() << "\".\n";
+    } else {
+        cout << "\nSave to \"" << handler.getFileName() << "\" was unsuccessful.\n";
+    }
+}
+
+/**
+ * Switches the menu that the user is seeing.
  * @param original The original menu to be switched from.
  * @param updated The new menu.
  */
@@ -436,11 +487,11 @@ void displayGuide() {
          << "a set of valid commands, which include performing moves, undoing a move, saving your cube, and exiting.\n\n";
     
     cout << "One of the commands is called \"SOLVE\", which is point of access to the assistant. From there, you may\n"
-         << "step through the stages of solving the cube, skip each stage, or exit the assistant*.\n\n";
+         << "step through the stages of solving the cube, skip each stage, or exit the assistant.\n\n";
     
     cout << "Notes:\n"
          << " * As the assistant uses the beginner's method of solving, the last step (yellow corner orientation)\n"
-         << "   temporarily messes up the solved portions of the cube. Therefore, exiting is disabled for the step\n"
+         << "   temporarily messes up the solved portions of the cube. Therefore, exiting is disabled for this step.\n"
          << " * The color orange (O) has been replaced with magenta for increased color compatibility.\n\n"
          << "Enter anything to go back: ";
 }

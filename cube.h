@@ -16,7 +16,6 @@ public:
     static const set<char> VALID_MOVES;
     static const map<char, string> COLOR_STRINGS;
     static const map<int, string> FACE_STRINGS;
-    static const int NUM_FACES = 6;
     static const int MAX_DISPLAY = 100;
     
     /**
@@ -253,6 +252,7 @@ public:
     bool operator==(const Cube& rhs) const;
 private:
     static const map<int, char> FACE_COLORS;
+    static const int NUM_FACES = 6;
     static const int SIZE = 3;
 
     /**

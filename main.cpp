@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
             return test.runTests();
         } else {
             cout << "\nInvalid argument. The valid arguments are:\n";
-            cout << "\tassistant    - Test the Assistant class\n";
-            cout << "\tcube         - Test the Cube class\n";
+            cout << "\t   assistant - Test the Assistant class\n";
+            cout << "\t        cube - Test the Cube class\n";
             cout << "\tfile_handler - Test the File Handler class\n";
             return 1;
         }
@@ -153,22 +153,19 @@ char getCharacterInput() {
  */
 void handleNewCube(Cube& cube, FileHandler& handler, bool randomized, bool& original, bool& usingCube) {
     // Prompt user for the name of a valid file (empty or CSV-compliant).
-    // If no such file exists, user will be prompted to make a new file.
-    // Otherwise, the process will stop and nothing will update.
     cout << "\nPlease enter the name of a valid or empty file to use: ";
     string fileName;
     getline(cin, fileName);
     handler.setFileName(fileName);
 
     // First check if provided file is empty or valid.
-    bool fileSuccess = false;
-    int fileStatus = handler.checkValidFile(true);
+    int isEmpty = handler.checkValidFile(true);
+    int isValid = handler.checkValidFile(false);
 
-    if (fileStatus == FileHandler::VALID || fileStatus == FileHandler::EMPTY) {
+    if (isEmpty == FileHandler::VALID || isValid == FileHandler::VALID) {
         cout << "\nYou are now using \"" << fileName << "\".\n";
-        fileSuccess = true;
     } else {
-        cout << "\nError: Could not open \"" << fileName << "\".\n";
+        handler.displayError(isValid);
         handler.reset();
         return;
     }
@@ -228,9 +225,8 @@ void applyRandomScramble(Cube& cube, string& scramble) {
     // If invalid input, use default moves.
     if (cin.fail() || numMoves < 0 || numMoves > MAX_MOVES) {
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         numMoves = DEFAULT_MOVES;
-        cout << "\nCannot process that request, scrambling with " << numMoves << " moves instead.\n\n";
+        cout << "\nCannot process that request, scrambling with " << numMoves << " moves instead.\n";
     }
 
     // Apply random moves.
@@ -409,11 +405,24 @@ void useCube(Cube& cube, FileHandler& handler, bool newCube) {
  */
 void saveCube(Cube& cube, FileHandler& handler, bool& successful) {
     successful = handler.saveCubeToFile(cube);
+    char userInput;
 
-    if (successful) {
-        cout << "\nSaved " << cube.getName() << "'s cube to \"" << handler.getFileName() << "\".\n";
-    } else {
-        cout << "\nSave to \"" << handler.getFileName() << "\" was unsuccessful.\n";
+    // Allow retrial of saving if an error occurred.
+    while (true) {
+        if (successful) {
+            cout << "\nSaved " << cube.getName() << "'s cube to \"" << handler.getFileName() << "\".\n";
+            break;
+        } else {
+            handler.displayError(handler.checkValidFile(false)); // There must be invalid data in the file
+            cout << "\nSave was unsuccessful, try again (Y/N)? ";
+            userInput = getCharacterInput();
+            
+            if (userInput == 'Y') {
+                successful = handler.saveCubeToFile(cube);
+            } else {
+                break;
+            }
+        }
     }
 }
 
@@ -471,7 +480,9 @@ void displayLoadCube() {
 void displayGuide() {
     cout << "\n\n[GUIDE]\n"
          << "The Rubik's Cube Assistant program allows you to interact with a Rubik's cube and receive guidance from\n"
-         << "an assistant that uses beginner's method.\n\n";
+         << "an assistant that uses beginner's method: a layer-by-layer approach involving (1) solving the white\n"
+         << "cross, (2) solving the white corners, (3) solving the second layer, (4) solving the yellow cross, (5)\n"
+         << "aligning the yellow edges, (6) positioning the yellow corners, and (7) orienting the yellow corners.\n\n";
 
     cout << "To start interacting with your Rubik's cube, either create a new cube or load in a pre-existing one.\n"
          << "New Cube: You can scramble the new cube randomly or manually. You must provide a unique name for the\n"

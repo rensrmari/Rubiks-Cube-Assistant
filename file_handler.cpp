@@ -38,7 +38,7 @@ int FileHandler::checkValidFile(bool acceptEmpty) const {
     } else if (ifs.eof() && !acceptEmpty) { // File is not supposed to be empty
         return NO_DATA;
     } else if (!ifs.eof() && acceptEmpty) { // File is expected to be empty
-        return EMPTY;
+        return BAD_FORMAT;
     } else {
         ifs.unget(); // Prepare for checking valid CSV
     }
@@ -110,9 +110,6 @@ void FileHandler::displayError(int status) const {
             break;
         case NO_DATA:
             cout << "\nError: No data found in \"" << file << "\".\n";
-            break;
-        case EMPTY:
-            cout << "\nError: \"" << file << "\" is empty.\n";
             break;
         case BAD_FORMAT:
             cout << "\nError: Could not process \"" << file << "\".\n";

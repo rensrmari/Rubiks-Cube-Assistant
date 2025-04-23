@@ -51,7 +51,7 @@ int Assistant::prompt(bool allowExiting) const {
     istringstream iss(userInput);
     iss >> userNum;
 
-    if (!iss || (userNum != EXIT && userNum != SKIP)) {
+    if (!iss || (userNum != EXIT && userNum != SKIP) || (userNum == EXIT && !allowExiting)) {
         return CONT;
     } else if (userNum == EXIT && allowExiting) {
         return EXIT;
@@ -800,7 +800,10 @@ int Assistant::getYellowCross() {
         }
     
         processed = processSequence(algorithm, message);
-        if (processed && userNum != SKIP) { prompt(true); }
+        if (processed && userNum != SKIP) { 
+            userNum = prompt(true);
+            if (userNum == EXIT) { return EXIT; }
+        }
     }
     
     printComplete("COMPLETED YELLOW CROSS");

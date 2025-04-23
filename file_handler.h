@@ -10,7 +10,7 @@ using namespace std;
 
 class FileHandler {
 public:
-	enum VALID_STATUS { VALID, CANT_OPEN, NO_DATA, EMPTY, BAD_FORMAT, DUPLICATE_NAMES, INVALID_MOVES, MISMATCHED_MOVES };
+	enum VALID_STATUS { VALID, CANT_OPEN, NO_DATA, BAD_FORMAT, DUPLICATE_NAMES, INVALID_MOVES, MISMATCHED_MOVES };
 
 	/**
 	 * Default constructor for FileHandler.

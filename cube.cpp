@@ -219,7 +219,7 @@ StickerData Cube::findEdge(char color1, char color2) const {
     };
     
     // Check each face and each edge.
-    for (int i = 0; i < Cube::NUM_FACES; i++) {
+    for (int i = 0; i < NUM_FACES; i++) {
         for (int j = 0; j < coords.size(); j++) {
             pair<int, int> coord = coords[j];
             char edge = stickers[i][coord.first][coord.second];
@@ -381,7 +381,7 @@ pair<StickerData, pair<StickerData, StickerData>> Cube::findCorner(char baseColo
     };
 
     // Check each face and its corners.
-    for (int i = 0; i < Cube::NUM_FACES; i++) {
+    for (int i = 0; i < NUM_FACES; i++) {
         for (int j = 0; j < coords.size(); j++) {
             pair<int, int> coord = coords[j];
             char color = stickers[i][coord.first][coord.second];

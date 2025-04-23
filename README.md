@@ -8,7 +8,7 @@ The purpose of this project is to provide people with an increased understanding
 To use this program, you will need to:
 1. Have Git installed: https://git-scm.com/
 2. Open a terminal
-3. clone the repository
+3. Clone the repository
    ```
    git clone https://github.com/rensrmari/Rubiks-Cube-Assistant.git
    ```

@@ -1,6 +1,8 @@
 # Rubiks-Cube-Assistant
 A C++ program that allows you to interact with a Rubik's cube and receive assistance with solving it in the terminal.
 
+Video Demonstration: https://www.youtube.com/watch?v=b2PRqB73RsM
+
 # Project Purpose
 The purpose of this project is to provide people with an increased understanding of how to solve a Rubik's cube, a popular 3D combination puzzle. The program is designed to elaborate the process of solving the cube according to the beginner's method. You can choose to experiment with your cube in a sandbox-like environment, or you can follow along the steps provided by the assistant and see what each step entails.
 
